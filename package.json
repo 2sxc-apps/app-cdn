@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@types/cloudflare": "^2.7.15"
+  }
+}

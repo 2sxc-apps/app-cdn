@@ -1,0 +1,116 @@
+@inherits AppCode.Razor.AppRazor
+@using AppCode.Data
+@using AppCode.Helpers
+@using ToSic.Razor.Blade
+
+@{
+  var cacheSettings = As<CacheSettings>(MyItem);
+
+  var isEnabled = cacheSettings.Get("IsEnabled") != null ? cacheSettings.IsEnabled : App.Settings.IsEnabled;
+  var cacheMaxAge = cacheSettings.Get("MaxAge") != null ? cacheSettings.MaxAge : App.Settings.MaxAge;
+  var cacheSMaxAge = cacheSettings.Get("SMaxAge") != null ? cacheSettings.SMaxAge : App.Settings.SMaxAge;
+  var now = DateTime.UtcNow;
+  var header = "";
+
+  if (isEnabled)
+  {
+    HeaderCache.SetPublicCacheHeaders(Response, cacheMaxAge, cacheSMaxAge);
+    header = $"public, max-age={cacheMaxAge}, s-maxage={cacheSMaxAge}";
+  }
+}
+
+<div class="accordion" id="app-cdn" @Kit.Toolbar.Default(MyItem)>
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
+        Cache Settings @(isEnabled ? "✔️" : "❌")
+      </button>
+    </h2>
+    <div id="app-cache-settings" class="accordion-collapse collapse show" data-bs-parent="#app-cdn">
+      <div class="accordion-body">
+        <h3>Flush Cache</h3>
+        <div class="input-group mb-3">
+          <button class="btn btn-primary" type="button" onclick="purgeCache()">Purge Everything</button>
+          <button class="btn btn-outline-primary" type="button" id="custom-purge">Custom Purge</button>
+          <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
+        </div>
+        <h3>Stats:</h3>
+        <ul>
+          @* TODO: SHOW Cache-Control Header if not public *@
+          <li><b>Cache Control should be:</b> @(isEnabled? header : "❌")</li>
+          <li><b>Server-Zeit (UTC):</b> <span id="server-time">@now.ToString("yyyy-MM-dd HH:mm:ss")</span></li>
+          <li><b>Browser-Zeit (lokal):</b> <span id="browser-time"></span></li>
+          <li><b>CF-Cache-Status (HTML):</b> <span id="cf-status-html">wird geladen...</span></li>
+          <li><b>CF-Cache-Status (JS):</b> <span id="cf-status-js">wird geladen...</span></li>
+          <li><b>CF-Cache-Status (CSS):</b> <span id="cf-status-css">wird geladen...</span></li>
+          <li><b>CF-Cache-Status (Bild):</b> <span id="cf-status-img">wird geladen...</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Browser-Zeit aktualisieren
+  function updateBrowserTime() {
+    const now = new Date();
+    document.getElementById("browser-time").textContent =
+      now.toLocaleString("de-DE", { hour12: false });
+  }
+  setInterval(updateBrowserTime, 1000);
+  updateBrowserTime();
+
+  function checkCacheStatus(url, targetId) {
+    console.log(`Fetching ${url} for ${targetId}`);
+    fetch(url, { method: "GET", cache: "reload" })
+      .then(response => {
+        const cfStatus = response.headers.get("cf-cache-status") || "nicht vorhanden";
+        let color = "black";
+        if (cfStatus === "HIT") color = "green";
+        if (cfStatus === "MISS" || cfStatus === "EXPIRED") color = "orange";
+        if (cfStatus === "DYNAMIC" || cfStatus === "BYPASS") color = "red";
+        document.getElementById(targetId).textContent = cfStatus;
+        document.getElementById(targetId).style.color = color;
+      })
+      .catch(() => {
+        document.getElementById(targetId).textContent = "Fehler beim Laden";
+        document.getElementById(targetId).style.color = "red";
+      });
+  }
+
+  // === Tests ===
+  checkCacheStatus(window.location.href, "cf-status-html");
+
+  [
+    { selector: 'script[src]', prop: 'src', status: 'cf-status-js' },
+    { selector: 'link[rel="stylesheet"][href]', prop: 'href', status: 'cf-status-css' },
+    { selector: 'img[src]', prop: 'src', status: 'cf-status-img' }
+  ].forEach(({ selector, prop, status }) => {
+    var el = document.querySelector(selector);
+    if (el) checkCacheStatus(el[prop], status);
+  });
+
+  @* document.querySelector("#custom-purge").addEventListener("click", function () {
+    const customUrl = document.querySelector("#custom-purge-url").value;
+    purgeCache(customUrl);
+  });
+
+  function purgeCache(flushUrl = "") {
+    const ZONE_ID = '@App.Settings.ZoneId';
+    const API_KEY = '@App.Settings.ApiKey';
+    const EMAIL = '@App.Settings.CloudflareEmail';
+
+    var sxc = $2sxc(6923);
+
+    var urlParams = {};
+
+    var postParams = {
+      zone_id: ZONE_ID,
+      api_key: API_KEY,
+      email: EMAIL,
+      flushUrl: flushUrl
+    };
+
+    
+  } *@
+</script>
