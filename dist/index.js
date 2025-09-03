@@ -60,7 +60,7 @@ function mh(r, t) {
   }
   return t(r);
 }
-const Fy = Object.prototype.hasOwnProperty, Ah = {
+const Gy = Object.prototype.hasOwnProperty, Ah = {
   brackets(r) {
     return String(r) + "[]";
   },
@@ -71,8 +71,8 @@ const Fy = Object.prototype.hasOwnProperty, Ah = {
   repeat(r) {
     return String(r);
   }
-}, X = Array.isArray, Gy = Array.prototype.push, vh = function(r, t) {
-  Gy.apply(r, X(t) ? t : [t]);
+}, X = Array.isArray, Fy = Array.prototype.push, vh = function(r, t) {
+  Fy.apply(r, X(t) ? t : [t]);
 }, By = Date.prototype.toISOString, b = {
   addQueryPrefix: !1,
   allowDots: !1,
@@ -146,13 +146,13 @@ function Lh(r, t, e, s, n, i, c, a, l, g, y, w, R, k, _t, St, gt, ei) {
   if (n && X($) && $.length === 0)
     return gs + "[]";
   for (let A = 0; A < ye.length; ++A) {
-    const Ft = ye[A], wh = (
+    const Gt = ye[A], wh = (
       // @ts-ignore
-      typeof Ft == "object" && typeof Ft.value < "u" ? Ft.value : $[Ft]
+      typeof Gt == "object" && typeof Gt.value < "u" ? Gt.value : $[Gt]
     );
     if (c && wh === null)
       continue;
-    const ni = w && a ? Ft.replace(/\./g, "%2E") : Ft, Ey = X($) ? typeof e == "function" ? e(gs, ni) : gs : gs + (w ? "." + ni : "[" + ni + "]");
+    const ni = w && a ? Gt.replace(/\./g, "%2E") : Gt, Ey = X($) ? typeof e == "function" ? e(gs, ni) : gs : gs + (w ? "." + ni : "[" + ni + "]");
     ei.set(r, _s);
     const $h = /* @__PURE__ */ new WeakMap();
     $h.set(ri, ei), vh(si, Lh(
@@ -191,7 +191,7 @@ function Wy(r = b) {
     throw new TypeError("The charset option must be either utf-8, iso-8859-1, or undefined");
   let e = ai;
   if (typeof r.format < "u") {
-    if (!Fy.call(ui, r.format))
+    if (!Gy.call(ui, r.format))
       throw new TypeError("Unknown format option provided.");
     e = r.format;
   }
@@ -265,7 +265,7 @@ function Ky(r, t = {}) {
   let w = s.addQueryPrefix === !0 ? "?" : "";
   return s.charsetSentinel && (s.charset === "iso-8859-1" ? w += "utf8=%26%2310003%3B&" : w += "utf8=%E2%9C%93&"), y.length > 0 ? w + y : "";
 }
-const Gt = "4.5.0";
+const Ft = "4.5.0";
 class h extends Error {
 }
 class v extends h {
@@ -316,13 +316,13 @@ class Dh extends v {
 }
 class Eh extends v {
 }
-let yh = !1, Pe, Mh, Nh, ys, gi, Yh, jh, Fh;
+let yh = !1, Pe, Mh, Nh, ys, gi, Yh, jh, Gh;
 function Xy(r, t = { auto: !1 }) {
   if (yh)
     throw new Error(`you must \`import 'cloudflare/shims/${r.kind}'\` before importing anything else from cloudflare`);
   if (Pe)
     throw new Error(`can't \`import 'cloudflare/shims/${r.kind}'\` after \`import 'cloudflare/shims/${Pe}'\``);
-  yh = t.auto, Pe = r.kind, Mh = r.fetch, Nh = r.FormData, ys = r.File, gi = r.getMultipartRequestOptions, Yh = r.getDefaultAgent, jh = r.fileFromPath, Fh = r.isFsReadStream;
+  yh = t.auto, Pe = r.kind, Mh = r.fetch, Nh = r.FormData, ys = r.File, gi = r.getMultipartRequestOptions, Yh = r.getDefaultAgent, jh = r.fileFromPath, Gh = r.isFsReadStream;
 }
 class Qy {
   constructor(t) {
@@ -390,11 +390,11 @@ function Jy({ manuallyImported: r } = {}) {
     isFsReadStream: (c) => !1
   };
 }
-const Gh = () => {
+const Fh = () => {
   Pe || Xy(Jy(), { auto: !0 });
 };
-Gh();
-const Bh = (r) => r != null && typeof r == "object" && typeof r.url == "string" && typeof r.blob == "function", Hh = (r) => r != null && typeof r == "object" && typeof r.name == "string" && typeof r.lastModified == "number" && vs(r), vs = (r) => r != null && typeof r == "object" && typeof r.size == "number" && typeof r.type == "string" && typeof r.text == "function" && typeof r.slice == "function" && typeof r.arrayBuffer == "function", pi = (r) => Hh(r) || Bh(r) || Fh(r);
+Fh();
+const Bh = (r) => r != null && typeof r == "object" && typeof r.url == "string" && typeof r.blob == "function", Hh = (r) => r != null && typeof r == "object" && typeof r.name == "string" && typeof r.lastModified == "number" && vs(r), vs = (r) => r != null && typeof r == "object" && typeof r.size == "number" && typeof r.type == "string" && typeof r.text == "function" && typeof r.slice == "function" && typeof r.arrayBuffer == "function", pi = (r) => Hh(r) || Bh(r) || Gh(r);
 async function wi(r, t, e) {
   if (r = await r, Hh(r))
     return r;
@@ -502,7 +502,7 @@ var Xh = function(r, t, e, s, n) {
   if (typeof t == "function" ? r !== t || !s : !t.has(r)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
   return e === "m" ? s : e === "a" ? s.call(r) : s ? s.value : t.get(r);
 }, $s, ps;
-Gh();
+Fh();
 async function Jh(r) {
   const { response: t } = r;
   if (t.status === 204)
@@ -775,7 +775,7 @@ class rf {
     return c * a * 1e3;
   }
   getUserAgent() {
-    return `${this.constructor.name}/JS ${Gt}`;
+    return `${this.constructor.name}/JS ${Ft}`;
   }
   getAPIVerson() {
     return this.apiVersion;
@@ -860,7 +860,7 @@ const of = (r) => new Proxy(Object.fromEntries(
   if (typeof Deno < "u" && Deno.build != null)
     return {
       "X-Stainless-Lang": "js",
-      "X-Stainless-Package-Version": Gt,
+      "X-Stainless-Package-Version": Ft,
       "X-Stainless-OS": bh(Deno.build.os),
       "X-Stainless-Arch": Ph(Deno.build.arch),
       "X-Stainless-Runtime": "deno",
@@ -869,7 +869,7 @@ const of = (r) => new Proxy(Object.fromEntries(
   if (typeof EdgeRuntime < "u")
     return {
       "X-Stainless-Lang": "js",
-      "X-Stainless-Package-Version": Gt,
+      "X-Stainless-Package-Version": Ft,
       "X-Stainless-OS": "Unknown",
       "X-Stainless-Arch": `other:${EdgeRuntime}`,
       "X-Stainless-Runtime": "edge",
@@ -878,7 +878,7 @@ const of = (r) => new Proxy(Object.fromEntries(
   if (Object.prototype.toString.call(typeof process < "u" ? process : 0) === "[object process]")
     return {
       "X-Stainless-Lang": "js",
-      "X-Stainless-Package-Version": Gt,
+      "X-Stainless-Package-Version": Ft,
       "X-Stainless-OS": bh(process.platform),
       "X-Stainless-Arch": Ph(process.arch),
       "X-Stainless-Runtime": "node",
@@ -887,14 +887,14 @@ const of = (r) => new Proxy(Object.fromEntries(
   const r = lf();
   return r ? {
     "X-Stainless-Lang": "js",
-    "X-Stainless-Package-Version": Gt,
+    "X-Stainless-Package-Version": Ft,
     "X-Stainless-OS": "Unknown",
     "X-Stainless-Arch": "unknown",
     "X-Stainless-Runtime": `browser:${r.browser}`,
     "X-Stainless-Runtime-Version": r.version
   } : {
     "X-Stainless-Lang": "js",
-    "X-Stainless-Package-Version": Gt,
+    "X-Stainless-Package-Version": Ft,
     "X-Stainless-OS": "Unknown",
     "X-Stainless-Arch": "unknown",
     "X-Stainless-Runtime": "unknown",
@@ -991,7 +991,7 @@ const wf = () => "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (r) => 
     if (s.toLowerCase() === e)
       return Array.isArray(n) ? (n.length <= 1 || console.warn(`Received ${n.length} entries for the ${t} header, using the first entry.`), n[0]) : n;
 };
-class F extends Ue {
+class G extends Ue {
   constructor(t, e, s, n) {
     super(t, e, s, n), this.result = s.result || {}, this.result_info = s.result_info || {};
   }
@@ -2188,20 +2188,20 @@ At.Operations = Mi;
 At.OperationListResponsesV4PagePaginationArray = Ni;
 At.Hosts = Di;
 At.HostListResponsesV4PagePaginationArray = Ei;
-class G extends o {
+class F extends o {
   constructor() {
     super(...arguments), this.configurations = new a_(this._client), this.discovery = new Ci(this._client), this.operations = new Se(this._client), this.schemas = new u_(this._client), this.settings = new g_(this._client), this.userSchemas = new At(this._client), this.expressionTemplate = new Zi(this._client);
   }
 }
-G.Configurations = a_;
-G.Discovery = Ci;
-G.Operations = Se;
-G.OperationListResponsesV4PagePaginationArray = Ti;
-G.OperationBulkCreateResponsesSinglePage = Vi;
-G.Schemas = u_;
-G.UserSchemas = At;
-G.PublicSchemasV4PagePaginationArray = Yi;
-G.ExpressionTemplate = Zi;
+F.Configurations = a_;
+F.Discovery = Ci;
+F.Operations = Se;
+F.OperationListResponsesV4PagePaginationArray = Ti;
+F.OperationBulkCreateResponsesSinglePage = Vi;
+F.Schemas = u_;
+F.UserSchemas = At;
+F.PublicSchemasV4PagePaginationArray = Yi;
+F.ExpressionTemplate = Zi;
 class p_ extends o {
   /**
    * Submit the Abuse Report of a particular type
@@ -2445,20 +2445,20 @@ class ji extends o {
    */
   list(t, e) {
     const { account_id: s, ...n } = t;
-    return this._client.getAPIList(`/accounts/${s}/logs/audit`, Fi, { query: n, ...e });
+    return this._client.getAPIList(`/accounts/${s}/logs/audit`, Gi, { query: n, ...e });
   }
 }
-class Fi extends $i {
+class Gi extends $i {
 }
-ji.AuditListResponsesCursorLimitPagination = Fi;
+ji.AuditListResponsesCursorLimitPagination = Gi;
 let Os = class extends o {
   constructor() {
     super(...arguments), this.audit = new ji(this._client);
   }
 };
 Os.Audit = ji;
-Os.AuditListResponsesCursorLimitPagination = Fi;
-let Gi = class extends o {
+Os.AuditListResponsesCursorLimitPagination = Gi;
+let Fi = class extends o {
   /**
    * Find all available permission groups for Account Owned API Tokens
    *
@@ -2496,7 +2496,7 @@ let Gi = class extends o {
   }
 }, Bi = class extends d {
 };
-Gi.PermissionGroupListResponsesSinglePage = Bi;
+Fi.PermissionGroupListResponsesSinglePage = Bi;
 let y_ = class extends o {
   /**
    * Roll the Account Owned API token secret.
@@ -2522,7 +2522,7 @@ let y_ = class extends o {
   }
 }, ze = class extends o {
   constructor() {
-    super(...arguments), this.permissionGroups = new Gi(this._client), this.value = new y_(this._client);
+    super(...arguments), this.permissionGroups = new Fi(this._client), this.value = new y_(this._client);
   }
   /**
    * Create a new Account Owned API token.
@@ -2642,7 +2642,7 @@ let y_ = class extends o {
     return this._client.get(`/accounts/${s}/tokens/verify`, e)._thenUnwrap((n) => n.result);
   }
 };
-ze.PermissionGroups = Gi;
+ze.PermissionGroups = Fi;
 ze.PermissionGroupListResponsesSinglePage = Bi;
 ze.Value = y_;
 let pt = class extends o {
@@ -4186,7 +4186,7 @@ class j_ extends o {
     })._thenUnwrap((c) => c.result);
   }
 }
-class F_ extends o {
+class G_ extends o {
   /**
    * Gets markdown of a webpage from provided URL or HTML. Control page loading with
    * `gotoOptions` and `waitFor*` options.
@@ -4200,7 +4200,7 @@ class F_ extends o {
     })._thenUnwrap((c) => c.result);
   }
 }
-class G_ extends o {
+class F_ extends o {
   /**
    * Fetches rendered PDF from provided URL or HTML. Check available options like
    * `gotoOptions` and `waitFor*` to control page load behaviour.
@@ -4261,17 +4261,17 @@ class W_ extends o {
 }
 class Q extends o {
   constructor() {
-    super(...arguments), this.content = new N_(this._client), this.pdf = new G_(this._client), this.scrape = new B_(this._client), this.screenshot = new H_(this._client), this.snapshot = new W_(this._client), this.json = new Y_(this._client), this.links = new j_(this._client), this.markdown = new F_(this._client);
+    super(...arguments), this.content = new N_(this._client), this.pdf = new F_(this._client), this.scrape = new B_(this._client), this.screenshot = new H_(this._client), this.snapshot = new W_(this._client), this.json = new Y_(this._client), this.links = new j_(this._client), this.markdown = new G_(this._client);
   }
 }
 Q.Content = N_;
-Q.PDF = G_;
+Q.PDF = F_;
 Q.Scrape = B_;
 Q.Screenshot = H_;
 Q.Snapshot = W_;
 Q.Json = Y_;
 Q.Links = j_;
-Q.Markdown = F_;
+Q.Markdown = G_;
 class K_ extends o {
   /**
    * You can use Cache Reserve Clear to clear your Cache Reserve, but you must first
@@ -7248,7 +7248,7 @@ class jr extends o {
    */
   list(t, e) {
     const { account_id: s, ...n } = t;
-    return this._client.getAPIList(`/accounts/${s}/dns_settings/views`, Fr, { query: n, ...e });
+    return this._client.getAPIList(`/accounts/${s}/dns_settings/views`, Gr, { query: n, ...e });
   }
   /**
    * Delete an existing Internal DNS View
@@ -7300,9 +7300,9 @@ class jr extends o {
     return this._client.get(`/accounts/${n}/dns_settings/views/${t}`, s)._thenUnwrap((i) => i.result);
   }
 }
-class Fr extends p {
+class Gr extends p {
 }
-jr.ViewListResponsesV4PagePaginationArray = Fr;
+jr.ViewListResponsesV4PagePaginationArray = Gr;
 class Ms extends o {
   constructor() {
     super(...arguments), this.views = new jr(this._client);
@@ -7337,7 +7337,7 @@ class Ms extends o {
   }
 }
 Ms.Views = jr;
-Ms.ViewListResponsesV4PagePaginationArray = Fr;
+Ms.ViewListResponsesV4PagePaginationArray = Gr;
 let Ns = class extends o {
   constructor() {
     super(...arguments), this.zone = new Rg(this._client), this.account = new Ms(this._client);
@@ -7345,7 +7345,7 @@ let Ns = class extends o {
 };
 Ns.Zone = Rg;
 Ns.Account = Ms;
-let Gr = class extends o {
+let Fr = class extends o {
   /**
    * Create ACL.
    *
@@ -7436,7 +7436,7 @@ let Gr = class extends o {
   }
 }, Br = class extends d {
 };
-Gr.ACLsSinglePage = Br;
+Fr.ACLsSinglePage = Br;
 class Ag extends o {
   /**
    * Sends AXFR zone transfer request to primary nameserver(s).
@@ -7873,13 +7873,13 @@ class Qr extends o {
 Qr.Status = Lg;
 class H extends o {
   constructor() {
-    super(...arguments), this.forceAXFR = new Ag(this._client), this.incoming = new vg(this._client), this.outgoing = new Qr(this._client), this.acls = new Gr(this._client), this.peers = new Hr(this._client), this.tsigs = new Kr(this._client);
+    super(...arguments), this.forceAXFR = new Ag(this._client), this.incoming = new vg(this._client), this.outgoing = new Qr(this._client), this.acls = new Fr(this._client), this.peers = new Hr(this._client), this.tsigs = new Kr(this._client);
   }
 }
 H.ForceAXFRResource = Ag;
 H.IncomingResource = vg;
 H.OutgoingResource = Qr;
-H.ACLs = Gr;
+H.ACLs = Fr;
 H.ACLsSinglePage = Br;
 H.Peers = Hr;
 H.PeersSinglePage = Wr;
@@ -8337,7 +8337,7 @@ class Cg extends o {
     return this._client.get(`/zones/${s}/email/routing/rules/catch_all`, e)._thenUnwrap((n) => n.result);
   }
 }
-let Fs = class extends o {
+let Gs = class extends o {
   constructor() {
     super(...arguments), this.catchAlls = new Cg(this._client);
   }
@@ -8435,11 +8435,11 @@ let Fs = class extends o {
 };
 class uc extends p {
 }
-Fs.EmailRoutingRulesV4PagePaginationArray = uc;
-Fs.CatchAlls = Cg;
+Gs.EmailRoutingRulesV4PagePaginationArray = uc;
+Gs.CatchAlls = Cg;
 class mt extends o {
   constructor() {
-    super(...arguments), this.dns = new oc(this._client), this.rules = new Fs(this._client), this.addresses = new rc(this._client);
+    super(...arguments), this.dns = new oc(this._client), this.rules = new Gs(this._client), this.addresses = new rc(this._client);
   }
   /**
    * Disable your Email Routing zone. Also removes additional MX records previously
@@ -8483,7 +8483,7 @@ class mt extends o {
 }
 mt.DNS = oc;
 mt.DNSRecordsSinglePage = ac;
-mt.Rules = Fs;
+mt.Rules = Gs;
 mt.EmailRoutingRulesV4PagePaginationArray = uc;
 mt.Addresses = rc;
 mt.AddressesV4PagePaginationArray = cc;
@@ -8528,7 +8528,7 @@ let Zg = class extends o {
     return this._client.get(`/accounts/${n}/email-security/investigate/${t}/detections`, s)._thenUnwrap((i) => i.result);
   }
 };
-class Gs extends o {
+class Fs extends o {
   /**
    * Move a message
    *
@@ -8576,8 +8576,8 @@ class hc extends d {
 }
 class _c extends d {
 }
-Gs.MoveCreateResponsesSinglePage = hc;
-Gs.MoveBulkResponsesSinglePage = _c;
+Fs.MoveCreateResponsesSinglePage = hc;
+Fs.MoveBulkResponsesSinglePage = _c;
 class Tg extends o {
   /**
    * Preview for non-detection messages
@@ -8702,7 +8702,7 @@ class Eg extends o {
 }
 class Z extends o {
   constructor() {
-    super(...arguments), this.detections = new Zg(this._client), this.preview = new Tg(this._client), this.raw = new Vg(this._client), this.trace = new Eg(this._client), this.move = new Gs(this._client), this.reclassify = new Dg(this._client), this.release = new gc(this._client);
+    super(...arguments), this.detections = new Zg(this._client), this.preview = new Tg(this._client), this.raw = new Vg(this._client), this.trace = new Eg(this._client), this.move = new Fs(this._client), this.reclassify = new Dg(this._client), this.release = new gc(this._client);
   }
   /**
    * Returns information for each email that matches the search parameter(s).
@@ -8745,7 +8745,7 @@ Z.Detections = Zg;
 Z.Preview = Tg;
 Z.Raw = Vg;
 Z.Trace = Eg;
-Z.Move = Gs;
+Z.Move = Fs;
 Z.MoveCreateResponsesSinglePage = hc;
 Z.MoveBulkResponsesSinglePage = _c;
 Z.Reclassify = Dg;
@@ -10348,15 +10348,15 @@ let jg = class extends o {
     return this._client.get(`/accounts/${n}/hyperdrive/configs/${t}`, s)._thenUnwrap((i) => i.result);
   }
 };
-class Fc extends o {
+class Gc extends o {
   constructor() {
     super(...arguments), this.configs = new jg(this._client);
   }
 }
 class bf extends d {
 }
-Fc.Configs = jg;
-let Gc = class extends o {
+Gc.Configs = jg;
+let Fc = class extends o {
   /**
    * List all the permissions groups for an account.
    *
@@ -10393,7 +10393,7 @@ let Gc = class extends o {
 };
 class Bc extends p {
 }
-Gc.PermissionGroupListResponsesV4PagePaginationArray = Bc;
+Fc.PermissionGroupListResponsesV4PagePaginationArray = Bc;
 class Hc extends o {
   /**
    * Create a new Resource Group under the specified account.
@@ -10679,21 +10679,21 @@ te.MemberUpdateResponsesSinglePage = Kc;
 te.MemberListResponsesV4PagePaginationArray = Xc;
 class yt extends o {
   constructor() {
-    super(...arguments), this.permissionGroups = new Gc(this._client), this.resourceGroups = new Hc(this._client), this.userGroups = new te(this._client);
+    super(...arguments), this.permissionGroups = new Fc(this._client), this.resourceGroups = new Hc(this._client), this.userGroups = new te(this._client);
   }
 }
-yt.PermissionGroups = Gc;
+yt.PermissionGroups = Fc;
 yt.PermissionGroupListResponsesV4PagePaginationArray = Bc;
 yt.ResourceGroups = Hc;
 yt.ResourceGroupListResponsesV4PagePaginationArray = Wc;
 yt.UserGroups = te;
 yt.UserGroupListResponsesV4PagePaginationArray = Qc;
-let Fg = class extends o {
+let Gg = class extends o {
   list(t = {}, e) {
     return u(t) ? this.list({}, t) : this._client.get("/ips", { query: t, ...e })._thenUnwrap((s) => s.result);
   }
 };
-class Gg extends o {
+class Fg extends o {
   /**
    * Fetch base image. For most images this will be the originally uploaded file. For
    * larger images it can be a near-lossless version of the original.
@@ -10876,7 +10876,7 @@ class Wg extends o {
 }
 class Ot extends o {
   constructor() {
-    super(...arguments), this.keys = new Bg(this._client), this.stats = new Hg(this._client), this.variants = new Wg(this._client), this.blobs = new Gg(this._client);
+    super(...arguments), this.keys = new Bg(this._client), this.stats = new Hg(this._client), this.variants = new Wg(this._client), this.blobs = new Fg(this._client);
   }
   /**
    * Upload an image with up to 10 Megabytes using a single HTTP POST
@@ -10955,13 +10955,13 @@ class Ot extends o {
     return this._client.get(`/accounts/${n}/images/v1/${t}`, s)._thenUnwrap((i) => i.result);
   }
 }
-class Jc extends F {
+class Jc extends G {
 }
 Ot.V1ListResponsesV4PagePagination = Jc;
 Ot.Keys = Bg;
 Ot.Stats = Hg;
 Ot.Variants = Wg;
-Ot.Blobs = Gg;
+Ot.Blobs = Fg;
 class Kg extends o {
   /**
    * Direct uploads allow users to upload images without API keys. A common use case
@@ -11037,7 +11037,7 @@ let Xg = class extends o {
     });
   }
 };
-class to extends F {
+class to extends G {
 }
 Xg.DNSV4PagePagination = to;
 class Qg extends o {
@@ -11274,7 +11274,7 @@ class ao extends o {
     })._thenUnwrap((i) => i.result);
   }
 }
-class uo extends F {
+class uo extends G {
 }
 ao.IssueListResponsesV4PagePagination = uo;
 class ee extends o {
@@ -12142,7 +12142,7 @@ class yo extends o {
     return this._client.getAPIList(`/accounts/${s}/load_balancers/search`, fo, { query: n, ...e });
   }
 }
-class fo extends F {
+class fo extends G {
 }
 yo.SearchListResponsesV4PagePagination = fo;
 class lp extends o {
@@ -13915,7 +13915,7 @@ re.VPCFlows = jo;
 re.Configs = No;
 re.Rules = rn;
 re.MagicNetworkMonitoringRulesSinglePage = Yo;
-let Fo = class extends o {
+let Go = class extends o {
   /**
    * Creates a new App for an account
    *
@@ -13965,7 +13965,7 @@ let Fo = class extends o {
    */
   list(t, e) {
     const { account_id: s } = t;
-    return this._client.getAPIList(`/accounts/${s}/magic/apps`, Go, e);
+    return this._client.getAPIList(`/accounts/${s}/magic/apps`, Fo, e);
   }
   /**
    * Deletes specific Account App.
@@ -14001,9 +14001,9 @@ let Fo = class extends o {
     })._thenUnwrap((c) => c.result);
   }
 };
-class Go extends d {
+class Fo extends d {
 }
-Fo.AppListResponsesSinglePage = Go;
+Go.AppListResponsesSinglePage = Fo;
 class zp extends o {
   /**
    * Updates a specific interconnect associated with an account. Use
@@ -15448,11 +15448,11 @@ ut.WANs = ea;
 ut.WANsSinglePage = bs;
 class C extends o {
   constructor() {
-    super(...arguments), this.apps = new Fo(this._client), this.cfInterconnects = new zp(this._client), this.greTunnels = new Rp(this._client), this.ipsecTunnels = new Ap(this._client), this.routes = new vp(this._client), this.sites = new ut(this._client), this.connectors = new Ee(this._client), this.pcaps = new ce(this._client);
+    super(...arguments), this.apps = new Go(this._client), this.cfInterconnects = new zp(this._client), this.greTunnels = new Rp(this._client), this.ipsecTunnels = new Ap(this._client), this.routes = new vp(this._client), this.sites = new ut(this._client), this.connectors = new Ee(this._client), this.pcaps = new ce(this._client);
   }
 }
-C.Apps = Fo;
-C.AppListResponsesSinglePage = Go;
+C.Apps = Go;
+C.AppListResponsesSinglePage = Fo;
 C.CfInterconnects = zp;
 C.GRETunnels = Rp;
 C.IPSECTunnels = Ap;
@@ -16605,7 +16605,7 @@ let wa = class extends o {
 class $a extends d {
 }
 wa.DomainListResponsesSinglePage = $a;
-let Fp = class extends o {
+let Gp = class extends o {
   /**
    * Fetch deployment logs for a project.
    *
@@ -16625,10 +16625,10 @@ let Fp = class extends o {
   }
 }, ma = class extends o {
   constructor() {
-    super(...arguments), this.logs = new Fp(this._client);
+    super(...arguments), this.logs = new Gp(this._client);
   }
 };
-ma.Logs = Fp;
+ma.Logs = Gp;
 let ya = class extends o {
   constructor() {
     super(...arguments), this.history = new ma(this._client);
@@ -16859,7 +16859,7 @@ let on = class extends o {
 };
 on.Projects = ue;
 on.DeploymentsSinglePage = cn;
-class Gp extends o {
+class Fp extends o {
   /**
    * Create a new pipeline.
    *
@@ -18299,14 +18299,14 @@ class Sa extends o {
 class za extends p {
 }
 Sa.SitesV4PagePaginationArray = za;
-class Fe extends o {
+class Ge extends o {
   constructor() {
     super(...arguments), this.siteInfo = new Sa(this._client), this.rules = new rw(this._client);
   }
 }
-Fe.SiteInfo = Sa;
-Fe.SitesV4PagePaginationArray = za;
-Fe.Rules = rw;
+Ge.SiteInfo = Sa;
+Ge.SitesV4PagePaginationArray = za;
+Ge.Rules = rw;
 let cw = class extends o {
   list(t = {}, e) {
     return u(t) ? this.list({}, t) : this._client.get("/radar/datasets", { query: t, ...e })._thenUnwrap((s) => s.result);
@@ -18547,7 +18547,7 @@ let gw = class extends o {
     return u(t) ? this.locations({}, t) : this._client.get("/radar/as112/top/locations", { query: t, ...e })._thenUnwrap((s) => s.result);
   }
 };
-class Ge extends o {
+class Fe extends o {
   constructor() {
     super(...arguments), this.summary = new gw(this._client), this.timeseriesGroups = new pw(this._client), this.top = new ww(this._client);
   }
@@ -18555,9 +18555,9 @@ class Ge extends o {
     return u(t) ? this.timeseries({}, t) : this._client.get("/radar/as112/timeseries", { query: t, ...e })._thenUnwrap((s) => s.result);
   }
 }
-Ge.Summary = gw;
-Ge.TimeseriesGroups = pw;
-Ge.Top = ww;
+Fe.Summary = gw;
+Fe.TimeseriesGroups = pw;
+Fe.Top = ww;
 let $w = class extends o {
   bitrate(t = {}, e) {
     return u(t) ? this.bitrate({}, t) : this._client.get("/radar/attacks/layer3/summary/bitrate", { query: t, ...e })._thenUnwrap((s) => s.result);
@@ -18817,7 +18817,7 @@ let xw = class extends o {
       ...e
     });
   }
-}, Ca = class extends F {
+}, Ca = class extends G {
 };
 Oa.EventListResponsesV4PagePagination = Ca;
 class hn extends o {
@@ -18835,7 +18835,7 @@ let Za = class extends o {
     });
   }
 };
-class Ta extends F {
+class Ta extends G {
 }
 Za.EventListResponsesV4PagePagination = Ta;
 class _n extends o {
@@ -19356,14 +19356,14 @@ let Mw = class extends o {
       ...s
     })._thenUnwrap((n) => n.result);
   }
-}, Fw = class extends o {
+}, Gw = class extends o {
   get(t, e = {}, s) {
     return u(e) ? this.get(t, {}, e) : this._client.get(`/radar/http/top/ases/browser_family/${t}`, {
       query: e,
       ...s
     })._thenUnwrap((n) => n.result);
   }
-}, Gw = class extends o {
+}, Fw = class extends o {
   get(t, e = {}, s) {
     return u(e) ? this.get(t, {}, e) : this._client.get(`/radar/http/top/ases/device_type/${t}`, {
       query: e,
@@ -19405,20 +19405,20 @@ let Mw = class extends o {
 };
 class et extends o {
   constructor() {
-    super(...arguments), this.botClass = new jw(this._client), this.deviceType = new Gw(this._client), this.httpProtocol = new Hw(this._client), this.httpMethod = new Bw(this._client), this.ipVersion = new Ww(this._client), this.os = new Kw(this._client), this.tlsVersion = new Xw(this._client), this.browserFamily = new Fw(this._client);
+    super(...arguments), this.botClass = new jw(this._client), this.deviceType = new Fw(this._client), this.httpProtocol = new Hw(this._client), this.httpMethod = new Bw(this._client), this.ipVersion = new Ww(this._client), this.os = new Kw(this._client), this.tlsVersion = new Xw(this._client), this.browserFamily = new Gw(this._client);
   }
   get(t = {}, e) {
     return u(t) ? this.get({}, t) : this._client.get("/radar/http/top/ases", { query: t, ...e })._thenUnwrap((s) => s.result);
   }
 }
 et.BotClass = jw;
-et.DeviceType = Gw;
+et.DeviceType = Fw;
 et.HTTPProtocol = Hw;
 et.HTTPMethod = Bw;
 et.IPVersion = Ww;
 et.OS = Kw;
 et.TLSVersion = Xw;
-et.BrowserFamily = Fw;
+et.BrowserFamily = Gw;
 class Qw extends o {
   get(t, e = {}, s) {
     return u(e) ? this.get(t, {}, e) : this._client.get(`/radar/http/top/locations/bot_class/${t}`, {
@@ -19684,7 +19684,7 @@ let _$ = class extends o {
     return u(t) ? this.get({}, t) : this._client.get("/radar/traffic_anomalies/locations", { query: t, ...e })._thenUnwrap((s) => s.result);
   }
 };
-class Fa extends o {
+class Ga extends o {
   constructor() {
     super(...arguments), this.locations = new _$(this._client);
   }
@@ -19692,7 +19692,7 @@ class Fa extends o {
     return u(t) ? this.get({}, t) : this._client.get("/radar/traffic_anomalies", { query: t, ...e })._thenUnwrap((s) => s.result);
   }
 }
-Fa.Locations = _$;
+Ga.Locations = _$;
 class g$ extends o {
   bots(t = {}, e) {
     return u(t) ? this.bots({}, t) : this._client.get("/radar/verified_bots/top/bots", { query: t, ...e })._thenUnwrap((s) => s.result);
@@ -19701,15 +19701,15 @@ class g$ extends o {
     return u(t) ? this.categories({}, t) : this._client.get("/radar/verified_bots/top/categories", { query: t, ...e })._thenUnwrap((s) => s.result);
   }
 }
-class Ga extends o {
+class Fa extends o {
   constructor() {
     super(...arguments), this.top = new g$(this._client);
   }
 }
-Ga.Top = g$;
+Fa.Top = g$;
 class f extends o {
   constructor() {
-    super(...arguments), this.ai = new Tt(this._client), this.annotations = new Ia(this._client), this.bgp = new Vt(this._client), this.bots = new Da(this._client), this.datasets = new cw(this._client), this.dns = new We(this._client), this.netflows = new Ma(this._client), this.search = new ow(this._client), this.verifiedBots = new Ga(this._client), this.as112 = new Ge(this._client), this.email = new pn(this._client), this.attacks = new dn(this._client), this.entities = new wn(this._client), this.http = new Dt(this._client), this.quality = new mn(this._client), this.ranking = new yn(this._client), this.trafficAnomalies = new Fa(this._client), this.tcpResetsTimeouts = new aw(this._client), this.robotsTXT = new ja(this._client), this.leakedCredentials = new $n(this._client);
+    super(...arguments), this.ai = new Tt(this._client), this.annotations = new Ia(this._client), this.bgp = new Vt(this._client), this.bots = new Da(this._client), this.datasets = new cw(this._client), this.dns = new We(this._client), this.netflows = new Ma(this._client), this.search = new ow(this._client), this.verifiedBots = new Fa(this._client), this.as112 = new Fe(this._client), this.email = new pn(this._client), this.attacks = new dn(this._client), this.entities = new wn(this._client), this.http = new Dt(this._client), this.quality = new mn(this._client), this.ranking = new yn(this._client), this.trafficAnomalies = new Ga(this._client), this.tcpResetsTimeouts = new aw(this._client), this.robotsTXT = new ja(this._client), this.leakedCredentials = new $n(this._client);
   }
 }
 f.AI = Tt;
@@ -19720,15 +19720,15 @@ f.Datasets = cw;
 f.DNS = We;
 f.Netflows = Ma;
 f.Search = ow;
-f.VerifiedBots = Ga;
-f.AS112 = Ge;
+f.VerifiedBots = Fa;
+f.AS112 = Fe;
 f.Email = pn;
 f.Attacks = dn;
 f.Entities = wn;
 f.HTTP = Dt;
 f.Quality = mn;
 f.Ranking = yn;
-f.TrafficAnomalies = Fa;
+f.TrafficAnomalies = Ga;
 f.TCPResetsTimeouts = aw;
 f.RobotsTXT = ja;
 f.LeakedCredentials = $n;
@@ -21617,7 +21617,7 @@ class he extends o {
     return this._client.put(`/${a}/${l}/security-center/insights/${t}/dismiss`, { body: c, ...s });
   }
 }
-class mu extends F {
+class mu extends G {
 }
 he.InsightListResponsesV4PagePagination = mu;
 he.Class = R$;
@@ -22455,7 +22455,7 @@ let j$ = class extends o {
 class vu extends d {
 }
 j$.KeyGetResponsesSinglePage = vu;
-let F$ = class extends o {
+let G$ = class extends o {
   /**
    * Creates a signed URL token for a video. If a body is not provided in the
    * request, a token is created with default values.
@@ -22476,7 +22476,7 @@ let F$ = class extends o {
     })._thenUnwrap((c) => c.result);
   }
 };
-class G$ extends o {
+class F$ extends o {
   /**
    * Returns information about an account's storage use.
    *
@@ -22914,7 +22914,7 @@ Ln.Outputs = Cu;
 Ln.OutputsSinglePage = Zu;
 class U extends o {
   constructor() {
-    super(...arguments), this.audioTracks = new Ru(this._client), this.videos = new G$(this._client), this.clip = new D$(this._client), this.copy = new E$(this._client), this.directUpload = new M$(this._client), this.keys = new j$(this._client), this.liveInputs = new Ln(this._client), this.watermarks = new Lu(this._client), this.webhooks = new B$(this._client), this.captions = new vn(this._client), this.downloads = new N$(this._client), this.embed = new Y$(this._client), this.token = new F$(this._client);
+    super(...arguments), this.audioTracks = new Ru(this._client), this.videos = new F$(this._client), this.clip = new D$(this._client), this.copy = new E$(this._client), this.directUpload = new M$(this._client), this.keys = new j$(this._client), this.liveInputs = new Ln(this._client), this.watermarks = new Lu(this._client), this.webhooks = new B$(this._client), this.captions = new vn(this._client), this.downloads = new N$(this._client), this.embed = new Y$(this._client), this.token = new G$(this._client);
   }
   /**
    * Initiates a video upload using the TUS protocol. On success, the server responds
@@ -23023,7 +23023,7 @@ class W$ extends d {
 U.VideosSinglePage = W$;
 U.AudioTracks = Ru;
 U.AudioSinglePage = Au;
-U.Videos = G$;
+U.Videos = F$;
 U.ClipResource = D$;
 U.Copy = E$;
 U.DirectUpload = M$;
@@ -23036,7 +23036,7 @@ U.Captions = vn;
 U.CaptionsSinglePage = Ou;
 U.Downloads = N$;
 U.Embed = Y$;
-U.Token = F$;
+U.Token = G$;
 class Tu extends o {
   /**
    * Lists challenge widgets.
@@ -23524,17 +23524,17 @@ class es extends o {
 es.History = Yu;
 es.BillingHistoriesV4PagePaginationArray = ju;
 es.Profile = tm;
-class Fu extends o {
+class Gu extends o {
   list(t = {}, e) {
-    return u(t) ? this.list({}, t) : this._client.getAPIList("/user/tokens/permission_groups", Gu, {
+    return u(t) ? this.list({}, t) : this._client.getAPIList("/user/tokens/permission_groups", Fu, {
       query: t,
       ...e
     });
   }
 }
-class Gu extends d {
+class Fu extends d {
 }
-Fu.PermissionGroupListResponsesSinglePage = Gu;
+Gu.PermissionGroupListResponsesSinglePage = Fu;
 class em extends o {
   /**
    * Roll the token secret.
@@ -23553,7 +23553,7 @@ class em extends o {
 }
 class ss extends o {
   constructor() {
-    super(...arguments), this.permissionGroups = new Fu(this._client), this.value = new em(this._client);
+    super(...arguments), this.permissionGroups = new Gu(this._client), this.value = new em(this._client);
   }
   /**
    * Create a new access token.
@@ -23645,8 +23645,8 @@ class ss extends o {
     return this._client.get("/user/tokens/verify", t)._thenUnwrap((e) => e.result);
   }
 }
-ss.PermissionGroups = Fu;
-ss.PermissionGroupListResponsesSinglePage = Gu;
+ss.PermissionGroups = Gu;
+ss.PermissionGroupListResponsesSinglePage = Fu;
 ss.Value = em;
 class nt extends o {
   constructor() {
@@ -25516,7 +25516,7 @@ let ol = class extends o {
     return this._client.get(`/accounts/${i}/workers/scripts/${t}/versions/${e}`, n)._thenUnwrap((c) => c.result);
   }
 };
-class al extends F {
+class al extends G {
 }
 ol.VersionListResponsesV4PagePagination = al;
 let ym = class extends o {
@@ -27525,7 +27525,7 @@ class Zm extends o {
     return this._client.get(`/${c}/${a}/access/apps/${t}/user_policy_checks`, s)._thenUnwrap((l) => l.result);
   }
 }
-let Fl = class extends o {
+let Gl = class extends o {
   /**
    * Fetches a single page of user results from an Access policy test.
    *
@@ -27542,15 +27542,15 @@ let Fl = class extends o {
    */
   list(t, e, s) {
     const { account_id: n, ...i } = e;
-    return this._client.getAPIList(`/accounts/${n}/access/policy-tests/${t}/users`, Gl, { query: i, ...s });
+    return this._client.getAPIList(`/accounts/${n}/access/policy-tests/${t}/users`, Fl, { query: i, ...s });
   }
 };
-class Gl extends p {
+class Fl extends p {
 }
-Fl.UserListResponsesV4PagePaginationArray = Gl;
+Gl.UserListResponsesV4PagePaginationArray = Fl;
 class jn extends o {
   constructor() {
-    super(...arguments), this.users = new Fl(this._client);
+    super(...arguments), this.users = new Gl(this._client);
   }
   /**
    * Starts an Access policy test.
@@ -27587,8 +27587,8 @@ class jn extends o {
     return this._client.get(`/accounts/${n}/access/policy-tests/${t}`, s)._thenUnwrap((i) => i.result);
   }
 }
-jn.Users = Fl;
-jn.UserListResponsesV4PagePaginationArray = Gl;
+jn.Users = Gl;
+jn.UserListResponsesV4PagePaginationArray = Fl;
 class rt extends o {
   constructor() {
     super(...arguments), this.cas = new Ml(this._client), this.userPolicyChecks = new Zm(this._client), this.policies = new Yl(this._client), this.policyTests = new jn(this._client), this.settings = new Cm(this._client);
@@ -27922,7 +27922,7 @@ class Wl extends d {
 is.CertificatesSinglePage = Wl;
 is.Settings = Hl;
 is.CertificateSettingsSinglePage = Us;
-class Fn extends o {
+class Gn extends o {
   /**
    * Create new target
    *
@@ -28078,14 +28078,14 @@ class Kl extends p {
 }
 class Xl extends d {
 }
-Fn.TargetListResponsesV4PagePaginationArray = Kl;
-Fn.TargetBulkUpdateResponsesSinglePage = Xl;
+Gn.TargetListResponsesV4PagePaginationArray = Kl;
+Gn.TargetBulkUpdateResponsesSinglePage = Xl;
 class rs extends o {
   constructor() {
-    super(...arguments), this.targets = new Fn(this._client);
+    super(...arguments), this.targets = new Gn(this._client);
   }
 }
-rs.Targets = Fn;
+rs.Targets = Gn;
 rs.TargetListResponsesV4PagePaginationArray = Kl;
 rs.TargetBulkUpdateResponsesSinglePage = Xl;
 class Tm extends o {
@@ -28138,20 +28138,20 @@ class Ql extends o {
 class Jl extends d {
 }
 Ql.UpdateListResponsesSinglePage = Jl;
-let Gn = class extends o {
+let Fn = class extends o {
   constructor() {
     super(...arguments), this.updates = new Ql(this._client);
   }
 };
-Gn.Updates = Ql;
-Gn.UpdateListResponsesSinglePage = Jl;
+Fn.Updates = Ql;
+Fn.UpdateListResponsesSinglePage = Jl;
 class Bn extends o {
   constructor() {
-    super(...arguments), this.accessRequests = new Tm(this._client), this.scim = new Gn(this._client);
+    super(...arguments), this.accessRequests = new Tm(this._client), this.scim = new Fn(this._client);
   }
 }
 Bn.AccessRequests = Tm;
-Bn.SCIM = Gn;
+Bn.SCIM = Fn;
 class ql extends o {
   /**
    * Get active sessions for a single user.
@@ -28921,7 +28921,7 @@ let Ym = class extends o {
     const { account_id: n } = e;
     return this._client.getAPIList(`/accounts/${n}/devices/policy/${t}/fallback_domains`, Rs, s);
   }
-}, Fm = class extends o {
+}, Gm = class extends o {
   /**
    * Sets the list of routes included in the WARP client's tunnel for a specific
    * device settings profile.
@@ -28965,7 +28965,7 @@ let Ym = class extends o {
   }
 }, cs = class extends o {
   constructor() {
-    super(...arguments), this.excludes = new Ym(this._client), this.includes = new Fm(this._client), this.fallbackDomains = new jm(this._client);
+    super(...arguments), this.excludes = new Ym(this._client), this.includes = new Gm(this._client), this.fallbackDomains = new jm(this._client);
   }
   /**
    * Creates a device settings profile to be applied to certain devices matching the
@@ -29059,9 +29059,9 @@ let Ym = class extends o {
   }
 };
 cs.Excludes = Ym;
-cs.Includes = Fm;
+cs.Includes = Gm;
 cs.FallbackDomains = jm;
-let Gm = class extends o {
+let Fm = class extends o {
   /**
    * Enable Zero Trust Clients to provision a certificate, containing a x509 subject,
    * and referenced by Access device posture policies when the client visits MTLS
@@ -29222,7 +29222,7 @@ class Wm extends o {
 }
 class pe extends o {
   constructor() {
-    super(...arguments), this.excludes = new Bm(this._client), this.includes = new Wm(this._client), this.fallbackDomains = new Hm(this._client), this.certificates = new Gm(this._client);
+    super(...arguments), this.excludes = new Bm(this._client), this.includes = new Wm(this._client), this.fallbackDomains = new Hm(this._client), this.certificates = new Fm(this._client);
   }
   /**
    * Updates the default device settings profile for an account.
@@ -29258,7 +29258,7 @@ class pe extends o {
 pe.Excludes = Bm;
 pe.Includes = Wm;
 pe.FallbackDomains = Hm;
-pe.Certificates = Gm;
+pe.Certificates = Fm;
 class Hn extends o {
   constructor() {
     super(...arguments), this.default = new pe(this._client), this.custom = new cs(this._client);
@@ -29733,7 +29733,7 @@ let fd = class extends o {
     return this._client.getAPIList(`/accounts/${s}/dex/commands/devices`, Pd, { query: n, ...e });
   }
 };
-class Pd extends F {
+class Pd extends G {
 }
 fd.DeviceListResponsesV4PagePagination = Pd;
 class Jm extends o {
@@ -29827,7 +29827,7 @@ class Yt extends o {
     return this._client.getAPIList(`/accounts/${s}/dex/commands`, bd, { query: n, ...e });
   }
 }
-class bd extends F {
+class bd extends G {
 }
 Yt.CommandListResponsesV4PagePagination = bd;
 Yt.Devices = fd;
@@ -30011,7 +30011,7 @@ class ey extends o {
     });
   }
 }
-class zd extends F {
+class zd extends G {
 }
 ey.TestsV4PagePagination = zd;
 class sy extends o {
@@ -31424,7 +31424,7 @@ class Yd extends o {
 class jd extends d {
 }
 Yd.ProxyEndpointsSinglePage = jd;
-class Fd extends o {
+class Gd extends o {
   /**
    * Creates a new Zero Trust Gateway rule.
    *
@@ -31480,7 +31480,7 @@ class Fd extends o {
    */
   list(t, e) {
     const { account_id: s } = t;
-    return this._client.getAPIList(`/accounts/${s}/gateway/rules`, Gd, e);
+    return this._client.getAPIList(`/accounts/${s}/gateway/rules`, Fd, e);
   }
   /**
    * Deletes a Zero Trust Gateway rule.
@@ -31534,9 +31534,9 @@ class Fd extends o {
     return this._client.post(`/accounts/${n}/gateway/rules/${t}/reset_expiration`, s)._thenUnwrap((i) => i.result);
   }
 }
-class Gd extends d {
+class Fd extends d {
 }
-Fd.GatewayRulesSinglePage = Gd;
+Gd.GatewayRulesSinglePage = Fd;
 class wy extends o {
   /**
    * Fetches the current Zero Trust certificate configuration.
@@ -31753,7 +31753,7 @@ ls.Items = Hd;
 ls.ItemListResponsesSinglePage = Wd;
 class x extends o {
   constructor() {
-    super(...arguments), this.auditSSHSettings = new gy(this._client), this.categories = new Td(this._client), this.appTypes = new Cd(this._client), this.configurations = new Bd(this._client), this.lists = new ls(this._client), this.locations = new Md(this._client), this.logging = new py(this._client), this.proxyEndpoints = new Yd(this._client), this.rules = new Fd(this._client), this.certificates = new Dd(this._client);
+    super(...arguments), this.auditSSHSettings = new gy(this._client), this.categories = new Td(this._client), this.appTypes = new Cd(this._client), this.configurations = new Bd(this._client), this.lists = new ls(this._client), this.locations = new Md(this._client), this.logging = new py(this._client), this.proxyEndpoints = new Yd(this._client), this.rules = new Gd(this._client), this.certificates = new Dd(this._client);
   }
   /**
    * Creates a Zero Trust account with an existing Cloudflare account.
@@ -31797,8 +31797,8 @@ x.LocationsSinglePage = Nd;
 x.Logging = py;
 x.ProxyEndpoints = Yd;
 x.ProxyEndpointsSinglePage = jd;
-x.Rules = Fd;
-x.GatewayRulesSinglePage = Gd;
+x.Rules = Gd;
+x.GatewayRulesSinglePage = Fd;
 x.Certificates = Dd;
 x.CertificateListResponsesSinglePage = Ed;
 class $y extends o {
@@ -33422,7 +33422,7 @@ class _ extends rf {
       httpAgent: l.httpAgent,
       maxRetries: l.maxRetries,
       fetch: l.fetch
-    }), Ty.add(this), this.accounts = new pt(this), this.originCACertificates = new ia(this), this.ips = new Fg(this), this.memberships = new na(this), this.user = new nt(this), this.zones = new V(this), this.loadBalancers = new W(this), this.cache = new Xt(this), this.ssl = new ft(this), this.acm = new mi(this), this.argo = new Cs(this), this.certificateAuthorities = new mr(this), this.clientCertificates = new yr(this), this.customCertificates = new Ds(this), this.customHostnames = new Ie(this), this.customNameservers = new Es(this), this.dnsFirewall = new Oe(this), this.dns = new $t(this), this.emailSecurity = new It(this), this.emailRouting = new mt(this), this.filters = new Hs(this), this.firewall = new E(this), this.healthchecks = new Ks(this), this.keylessCertificates = new wo(this), this.logpush = new at(this), this.logs = new Te(this), this.originTLSClientAuth = new ae(this), this.pageRules = new jp(this), this.rateLimits = new Ba(this), this.waitingRooms = new it(this), this.web3 = new Vn(this), this.workers = new M(this), this.kv = new Js(this), this.durableObjects = new js(this), this.queues = new Zt(this), this.apiGateway = new G(this), this.managedTransforms = new Op(this), this.pageShield = new tt(this), this.rulesets = new Mt(this), this.urlNormalization = new K$(this), this.spectrum = new qe(this), this.addressing = new B(this), this.auditLogs = new k_(this), this.billing = new hr(this), this.brandProtection = new Kt(this), this.diagnostics = new Ys(this), this.images = new Ze(this), this.intel = new L(this), this.magicTransit = new C(this), this.magicNetworkMonitoring = new re(this), this.magicCloudNetworking = new q(this), this.networkInterconnects = new oe(this), this.mtlsCertificates = new Ve(this), this.pages = new on(this), this.registrar = new fn(this), this.requestTracers = new Ka(this), this.rules = new Pn(this), this.stream = new U(this), this.alerting = new wt(this), this.d1 = new Jt(this), this.r2 = new je(this), this.workersForPlatforms = new ml(this), this.zeroTrust = new z(this), this.turnstile = new In(this), this.hyperdrive = new Fc(this), this.rum = new Fe(this), this.vectorize = new Cn(this), this.urlScanner = new kn(this), this.radar = new f(this), this.botManagement = new C_(this), this.originPostQuantumEncryption = new Mp(this), this.zaraz = new dt(this), this.speed = new _e(this), this.dcvDelegation = new xg(this), this.hostnames = new jc(this), this.snippets = new Nt(this), this.calls = new Qt(this), this.cloudforceOne = new vt(this), this.aiGateway = new D(this), this.iam = new yt(this), this.cloudConnector = new Ae(this), this.botnetFeed = new Zs(this), this.securityTXT = new L$(this), this.workflows = new bt(this), this.resourceSharing = new Et(this), this.leakedCredentialChecks = new qs(this), this.contentScanning = new Lt(this), this.abuseReports = new p_(this), this.ai = new ct(this), this.securityCenter = new Sn(this), this.browserRendering = new Q(this), this.customPages = new Zr(this), this.secretsStore = new de(this), this.pipelines = new Gp(this), this.schemaValidation = new Qe(this), this._options = l, this.apiToken = s, this.apiKey = n, this.apiEmail = i, this.userServiceKey = c;
+    }), Ty.add(this), this.accounts = new pt(this), this.originCACertificates = new ia(this), this.ips = new Gg(this), this.memberships = new na(this), this.user = new nt(this), this.zones = new V(this), this.loadBalancers = new W(this), this.cache = new Xt(this), this.ssl = new ft(this), this.acm = new mi(this), this.argo = new Cs(this), this.certificateAuthorities = new mr(this), this.clientCertificates = new yr(this), this.customCertificates = new Ds(this), this.customHostnames = new Ie(this), this.customNameservers = new Es(this), this.dnsFirewall = new Oe(this), this.dns = new $t(this), this.emailSecurity = new It(this), this.emailRouting = new mt(this), this.filters = new Hs(this), this.firewall = new E(this), this.healthchecks = new Ks(this), this.keylessCertificates = new wo(this), this.logpush = new at(this), this.logs = new Te(this), this.originTLSClientAuth = new ae(this), this.pageRules = new jp(this), this.rateLimits = new Ba(this), this.waitingRooms = new it(this), this.web3 = new Vn(this), this.workers = new M(this), this.kv = new Js(this), this.durableObjects = new js(this), this.queues = new Zt(this), this.apiGateway = new F(this), this.managedTransforms = new Op(this), this.pageShield = new tt(this), this.rulesets = new Mt(this), this.urlNormalization = new K$(this), this.spectrum = new qe(this), this.addressing = new B(this), this.auditLogs = new k_(this), this.billing = new hr(this), this.brandProtection = new Kt(this), this.diagnostics = new Ys(this), this.images = new Ze(this), this.intel = new L(this), this.magicTransit = new C(this), this.magicNetworkMonitoring = new re(this), this.magicCloudNetworking = new q(this), this.networkInterconnects = new oe(this), this.mtlsCertificates = new Ve(this), this.pages = new on(this), this.registrar = new fn(this), this.requestTracers = new Ka(this), this.rules = new Pn(this), this.stream = new U(this), this.alerting = new wt(this), this.d1 = new Jt(this), this.r2 = new je(this), this.workersForPlatforms = new ml(this), this.zeroTrust = new z(this), this.turnstile = new In(this), this.hyperdrive = new Gc(this), this.rum = new Ge(this), this.vectorize = new Cn(this), this.urlScanner = new kn(this), this.radar = new f(this), this.botManagement = new C_(this), this.originPostQuantumEncryption = new Mp(this), this.zaraz = new dt(this), this.speed = new _e(this), this.dcvDelegation = new xg(this), this.hostnames = new jc(this), this.snippets = new Nt(this), this.calls = new Qt(this), this.cloudforceOne = new vt(this), this.aiGateway = new D(this), this.iam = new yt(this), this.cloudConnector = new Ae(this), this.botnetFeed = new Zs(this), this.securityTXT = new L$(this), this.workflows = new bt(this), this.resourceSharing = new Et(this), this.leakedCredentialChecks = new qs(this), this.contentScanning = new Lt(this), this.abuseReports = new p_(this), this.ai = new ct(this), this.securityCenter = new Sn(this), this.browserRendering = new Q(this), this.customPages = new Zr(this), this.secretsStore = new de(this), this.pipelines = new Fp(this), this.schemaValidation = new Qe(this), this._options = l, this.apiToken = s, this.apiKey = n, this.apiEmail = i, this.userServiceKey = c;
   }
   defaultQuery() {
     return this._options.defaultQuery;
@@ -33479,7 +33479,7 @@ _.toFile = wi;
 _.fileFromPath = jh;
 _.Accounts = pt;
 _.OriginCACertificates = ia;
-_.IPs = Fg;
+_.IPs = Gg;
 _.Memberships = na;
 _.User = nt;
 _.Zones = V;
@@ -33512,7 +33512,7 @@ _.Workers = M;
 _.KV = Js;
 _.DurableObjects = js;
 _.Queues = Zt;
-_.APIGateway = G;
+_.APIGateway = F;
 _.ManagedTransforms = Op;
 _.PageShield = tt;
 _.Rulesets = Mt;
@@ -33541,8 +33541,8 @@ _.R2 = je;
 _.WorkersForPlatforms = ml;
 _.ZeroTrust = z;
 _.Turnstile = In;
-_.HyperdriveResource = Fc;
-_.RUM = Fe;
+_.HyperdriveResource = Gc;
+_.RUM = Ge;
 _.Vectorize = Cn;
 _.URLScanner = kn;
 _.Radar = f;
@@ -33570,7 +33570,7 @@ _.SecurityCenter = Sn;
 _.BrowserRendering = Q;
 _.CustomPages = Zr;
 _.SecretsStore = de;
-_.Pipelines = Gp;
+_.Pipelines = Fp;
 _.SchemaValidation = Qe;
 console.log("Cloudflare");
 const zh = document.querySelector("#custom-purge");
@@ -33584,9 +33584,9 @@ Rh && Rh.addEventListener("click", function() {
 });
 async function Dy(r = "") {
   const t = new _({
-    apiToken: "vLtFl8vyItbpQ4C6movhylmkeQ-oO28gBsTFDN6u"
+    apiToken: ""
     // Use 'token' property, not 'apiToken'
-  }), e = "4413b9853bf2627723add7e259356e72";
+  }), e = "";
   let s;
   r ? s = await t.cache.purge({ zone_id: e, files: [r] }) : s = await t.cache.purge({ zone_id: e, purge_everything: !0 }), console.log(s);
 }

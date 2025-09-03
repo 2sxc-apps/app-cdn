@@ -19,11 +19,11 @@ if (fullPurgeBtn) {
 
 async function purgeCache(flushUrl: string = '') {
   const client = new Cloudflare({
-    apiToken: 'vLtFl8vyItbpQ4C6movhylmkeQ-oO28gBsTFDN6u', // Use 'token' property, not 'apiToken'
+    apiToken: '', // Use 'token' property, not 'apiToken'
   });
 
   // Replace with your actual zone ID
-  const zoneId = '4413b9853bf2627723add7e259356e72';
+  const zoneId = '';
 
   let response;
 

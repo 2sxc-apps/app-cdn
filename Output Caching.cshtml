@@ -1,10 +1,16 @@
-@inherits AppCode.Razor.AppRazor
-@using AppCode.Data
-@using AppCode.Helpers
+@* @inherits AppCode.Razor.AppRazor
+@using AppCode.Data *@
+@* @using AppCode.Helpers *@
+
+@inherits ToSic.Sxc.Dnn.RazorComponent
 @using ToSic.Razor.Blade
 
+@using System.Web;
+@using System;
+
 @{
-  var cacheSettings = As<CacheSettings>(MyItem);
+  @* var cacheSettings = As<CacheSettings>(MyItem); *@
+  var cacheSettings = Content;
 
   var isEnabled = cacheSettings.Get("IsEnabled") != null ? cacheSettings.IsEnabled : App.Settings.IsEnabled;
   var cacheMaxAge = cacheSettings.Get("MaxAge") != null ? cacheSettings.MaxAge : App.Settings.MaxAge;
@@ -14,12 +20,14 @@
 
   if (isEnabled)
   {
-    HeaderCache.SetPublicCacheHeaders(Response, cacheMaxAge, cacheSMaxAge);
+    @* HeaderCache.SetPublicCacheHeaders(Response, cacheMaxAge, cacheSMaxAge); *@
+    SetPublicCacheHeaders(Response, (int)cacheMaxAge, (int)cacheSMaxAge);
     header = $"public, max-age={cacheMaxAge}, s-maxage={cacheSMaxAge}";
   }
 }
 
-<div class="accordion" id="app-cdn" @Kit.Toolbar.Default(MyItem)>
+@* <div class="accordion" id="app-cdn" @Kit.Toolbar.Default(MyItem)> *@
+<div class="accordion" id="app-cdn" @Edit.TagToolbar(Content)>
   <div class="accordion-item">
     <h2 class="accordion-header">
       <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
@@ -28,7 +36,8 @@
     </h2>
     <div id="app-cache-settings" class="accordion-collapse collapse show" data-bs-parent="#app-cdn">
       <div class="accordion-body">
-        @if (MyUser.IsContentAdmin)
+        @* @if (MyUser.IsContentAdmin) *@
+        @if (Edit.Enabled)
         {
           <h3>Flush Cache</h3>
           <div class="input-group mb-3">
@@ -54,7 +63,8 @@
   </div>
 </div>
 
-<script src="@App.Folder.Url/dist/main.js"></script>
+@* <script src="@App.Folder.Url/dist/main.js"></script> *@
+@* <script src="@App.Path/dist/main.js"></script> *@
 
 <script>
   function updateBrowserTime() {
@@ -134,3 +144,45 @@
   const debug = window.location.hash === "#debug";
   doTests(debug);
 </script>
+
+<script>
+  const customPurgeBtn = document.querySelector('#custom-purge');
+  if (customPurgeBtn) {
+    customPurgeBtn.addEventListener('click', function () {
+      const customUrl = document.querySelector('#custom-purge-url').value;
+      purgeCache(customUrl);
+    });
+  }
+
+  const fullPurgeBtn = document.querySelector('#full-purge');
+  if (fullPurgeBtn) {
+    fullPurgeBtn.addEventListener('click', function () {
+      purgeCache();
+    });
+  }
+
+  function purgeCache(url = '') {
+    var sxc = $2sxc(6923);
+    var urlParams = {};
+    var postParams = {
+      flushUrl: url
+    };
+
+    sxc.webApi.post('app/auto/api/Cache/Purge', urlParams, postParams)
+      .then(data => {
+        console.log(data)
+      });
+  }
+
+</script>
+
+@functions {
+  public void SetPublicCacheHeaders(HttpResponseBase Response, int browserCacheSeconds, int cloudflareCacheSeconds)
+  {
+    Response.Cache.SetCacheability(HttpCacheability.Public);
+    var ttlBrowser = TimeSpan.FromSeconds(browserCacheSeconds);
+    var ttlCloudflare = TimeSpan.FromSeconds(cloudflareCacheSeconds);
+    Response.Cache.SetMaxAge(ttlBrowser);
+    Response.Cache.SetProxyMaxAge(ttlCloudflare);
+  }
+}
