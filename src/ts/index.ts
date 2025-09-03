@@ -19,11 +19,11 @@ if (fullPurgeBtn) {
 
 async function purgeCache(flushUrl: string = '') {
   const client = new Cloudflare({
-    apiToken: 'Removed', // Use 'token' property, not 'apiToken'
+    apiToken: '', // Use 'token' property, not 'apiToken'
   });
 
   // Replace with your actual zone ID
-  const zoneId = 'Removed';
+  const zoneId = '';
 
   let response;
 
