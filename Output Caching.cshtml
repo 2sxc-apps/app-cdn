@@ -28,12 +28,16 @@
     </h2>
     <div id="app-cache-settings" class="accordion-collapse collapse show" data-bs-parent="#app-cdn">
       <div class="accordion-body">
-        <h3>Flush Cache</h3>
-        <div class="input-group mb-3">
-          <button class="btn btn-primary" type="button" id="full-purge">Purge Everything</button>
-          <button class="btn btn-outline-primary" type="button" id="custom-purge">Custom Purge</button>
-          <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
-        </div>
+        @if (MyUser.IsContentAdmin)
+        {
+          <h3>Flush Cache</h3>
+          <div class="input-group mb-3">
+            <button class="btn btn-primary" type="button" id="full-purge">Purge Everything</button>
+            <button class="btn btn-outline-primary" type="button" id="custom-purge">Custom Purge</button>
+            <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
+          </div>
+        }
+
         <h3>Stats:</h3>
         <ul>
           @* TODO: SHOW Cache-Control Header if not public *@
@@ -53,7 +57,6 @@
 <script src="@App.Folder.Url/dist/main.js"></script>
 
 <script>
-  // Browser-Zeit aktualisieren
   function updateBrowserTime() {
     const now = new Date();
     document.getElementById("browser-time").textContent =
@@ -62,57 +65,64 @@
   setInterval(updateBrowserTime, 1000);
   updateBrowserTime();
 
-  function checkCacheStatus(url, targetId) {
-    console.log(`Fetching ${url} for ${targetId}`);
-    fetch(url, { method: "GET", cache: "reload" })
-      .then(response => {
-        const cfStatus = response.headers.get("cf-cache-status") || "nicht vorhanden";
-        let color = "black";
-        if (cfStatus === "HIT") color = "green";
-        if (cfStatus === "MISS" || cfStatus === "EXPIRED") color = "orange";
-        if (cfStatus === "DYNAMIC" || cfStatus === "BYPASS") color = "red";
-        document.getElementById(targetId).textContent = cfStatus;
-        document.getElementById(targetId).style.color = color;
-      })
-      .catch(() => {
-        document.getElementById(targetId).textContent = "Fehler beim Laden";
-        document.getElementById(targetId).style.color = "red";
-      });
+  async function getCacheStatus(url) {
+    try {
+      const res = await fetch(url, { method: "GET", cache: "reload" });
+      return res.headers.get("cf-cache-status") || "nicht vorhanden";
+    } catch {
+      return "Fehler beim Laden";
+    }
   }
 
-  // === Tests ===
-  checkCacheStatus(window.location.href, "cf-status-html");
+  function applyStatus(targetId, status) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
 
-  [
-    { selector: 'script[src]', prop: 'src', status: 'cf-status-js' },
-    { selector: 'link[rel="stylesheet"][href]', prop: 'href', status: 'cf-status-css' },
-    { selector: 'img[src]', prop: 'src', status: 'cf-status-img' }
-  ].forEach(({ selector, prop, status }) => {
-    var el = document.querySelector(selector);
-    if (el) checkCacheStatus(el[prop], status);
-  });
-
-  @* document.querySelector("#custom-purge").addEventListener("click", function () {
-    const customUrl = document.querySelector("#custom-purge-url").value;
-    purgeCache(customUrl);
-  });
-
-  function purgeCache(flushUrl = "") {
-    const ZONE_ID = '@App.Settings.ZoneId';
-    const API_KEY = '@App.Settings.ApiKey';
-    const EMAIL = '@App.Settings.CloudflareEmail';
-
-    var sxc = $2sxc(6923);
-
-    var urlParams = {};
-
-    var postParams = {
-      zone_id: ZONE_ID,
-      api_key: API_KEY,
-      email: EMAIL,
-      flushUrl: flushUrl
+    const colors = {
+      HIT: "green",
+      MISS: "orange",
+      EXPIRED: "orange",
+      DYNAMIC: "red",
+      BYPASS: "red",
+      "Fehler beim Laden": "red",
     };
 
-    
-  } *@
+    el.textContent = status;
+    el.style.color = colors[status] || "black";
+  }
+
+  async function doTests(debug = false) {
+    const targets = [
+      { selector: window.location.href, prop: null, id: "cf-status-html" },
+      { selector: "script[src]", prop: "src", id: "cf-status-js" },
+      { selector: 'link[rel="stylesheet"][href]', prop: "href", id: "cf-status-css" },
+      { selector: "img[src]", prop: "src", id: "cf-status-img" },
+    ];
+
+    const results = await Promise.all(
+      targets.map(async ({ selector, prop }) => {
+        if (prop === null) return getCacheStatus(selector);
+        const el = document.querySelector(selector);
+        return el ? getCacheStatus(el[prop]) : "nicht vorhanden";
+      })
+    );
+
+    if (debug) {
+      alert(
+        `Cache Status:\n` +
+        `HTML: ${await results[0]}\n` +
+        `JS: ${await results[1]}\n` +
+        `CSS: ${await results[2]}\n` +
+        `IMG: ${await results[3]}`
+      );
+    } else {
+      for (let i = 0; i < targets.length; i++) {
+        const id = targets[i].id;
+        applyStatus(id, await results[i]);
+      }
+    }
+  }
+
+  const debug = window.location.hash === "#debug";
+  doTests(debug);
 </script>
