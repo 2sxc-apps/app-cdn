@@ -68,9 +68,12 @@
   async function getCacheStatus(url) {
     try {
       const res = await fetch(url, { method: "GET", cache: "reload" });
-      return res.headers.get("cf-cache-status") || "nicht vorhanden";
+      const cf = res.headers.get("cf-cache-status") || "nicht vorhanden";
+      const cc = res.headers.get("cache-control") || "nicht vorhanden";
+      const isPublic = cc.toLowerCase().includes("public");
+      return { cf, cc, isPublic };
     } catch {
-      return "Fehler beim Laden";
+      return { cf: "Fehler beim Laden", cc: "Fehler beim Laden", isPublic: false };
     }
   }
 
@@ -110,15 +113,20 @@
     if (debug) {
       alert(
         `Cache Status:\n` +
-        `HTML: ${await results[0]}\n` +
-        `JS: ${await results[1]}\n` +
-        `CSS: ${await results[2]}\n` +
-        `IMG: ${await results[3]}`
+        `HTML: CF=${results[0].cf}, CC=${results[0].cc}, ${results[0].isPublic ? "✅ public" : "❌ not public"}\n` +
+        `JS:   CF=${results[1].cf}, CC=${results[1].cc}, ${results[1].isPublic ? "✅ public" : "❌ not public"}\n` +
+        `CSS:  CF=${results[2].cf}, CC=${results[2].cc}, ${results[2].isPublic ? "✅ public" : "❌ not public"}\n` +
+        `IMG:  CF=${results[3].cf}, CC=${results[3].cc}, ${results[3].isPublic ? "✅ public" : "❌ not public"}`
       );
     } else {
       for (let i = 0; i < targets.length; i++) {
-        const id = targets[i].id;
-        applyStatus(id, await results[i]);
+        const el = document.getElementById(targets[i].id);
+        if (!el) continue;
+
+        applyStatus(targets[i].id, results[i].cf);
+
+        const ccNote = results[i].isPublic ? "✅ public" : "❌ not public";
+        el.insertAdjacentHTML("afterend", ` <small>(${ccNote})</small>`);
       }
     }
   }
