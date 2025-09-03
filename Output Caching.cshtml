@@ -30,7 +30,7 @@
       <div class="accordion-body">
         <h3>Flush Cache</h3>
         <div class="input-group mb-3">
-          <button class="btn btn-primary" type="button" onclick="purgeCache()">Purge Everything</button>
+          <button class="btn btn-primary" type="button" id="full-purge">Purge Everything</button>
           <button class="btn btn-outline-primary" type="button" id="custom-purge">Custom Purge</button>
           <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
         </div>
@@ -49,6 +49,8 @@
     </div>
   </div>
 </div>
+
+<script src="@App.Folder.Url/dist/main.js"></script>
 
 <script>
   // Browser-Zeit aktualisieren
