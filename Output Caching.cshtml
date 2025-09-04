@@ -78,7 +78,6 @@
     }
   }
 
-  // Show info if a cache setting was found in the hierarchy
   if (found && cacheSettings != null)
   {
 
@@ -159,27 +158,14 @@
         {
           <h3>Flush Cache</h3>
           <div class="input-group mb-3">
-            <button class="btn btn-primary" type="button" id="full-purge">Purge Everything</button>
-            <button class="btn btn-outline-primary" type="button" id="custom-purge">Custom Purge</button>
+            <button class="btn btn-outline-primary" type="button" id="full-purge">Purge Everything</button>
+            <button class="btn btn-primary" type="button" id="custom-purge">Custom Purge</button>
             <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
           </div>
         }
 
         <h3>Stats:</h3>
-        <ul>
-          <li><b>Cache Control should be:</b> @(isEnabled? header : "❌")</li>
-          <li><b>Server-Zeit (UTC):</b> <span id="server-time">@now.ToString("yyyy-MM-dd HH:mm:ss")</span></li>
-          <li><b>Browser-Zeit (lokal):</b> <span id="browser-time"></span></li>
-          <li><b>CF-Cache-Status (HTML):</b> <span id="cf-status-html">wird geladen...</span></li>
-          <li><b>CF-Cache-Status (JS):</b> <span id="cf-status-js">wird geladen...</span></li>
-          <li><b>CF-Cache-Status (CSS):</b> <span id="cf-status-css">wird geladen...</span></li>
-          <li><b>CF-Cache-Status (Bild):</b> <span id="cf-status-img">wird geladen...</span></li>
-        </ul>
-
-        <h3>Tags:</h3>
-        <ul>
-          <li><b>Cache Tags:</b> @(Text.Has(cacheTag) ? cacheTag : "no tags")</li>
-        </ul>
+        <textarea class="form-control" id="app-stats" rows="7" readonly></textarea>
       </div>
     </div>
   </div>
@@ -189,23 +175,15 @@
 @* <script src="@App.Path/dist/main.js"></script> *@
 
 <script>
-  function updateBrowserTime() {
-    const now = new Date();
-    document.getElementById("browser-time").textContent =
-      now.toLocaleString("de-DE", { hour12: false });
-  }
-  setInterval(updateBrowserTime, 1000);
-  updateBrowserTime();
-
   async function getCacheStatus(url) {
     try {
       const res = await fetch(url, { method: "GET", cache: "reload" });
-      const cf = res.headers.get("cf-cache-status") || "nicht vorhanden";
-      const cc = res.headers.get("cache-control") || "nicht vorhanden";
+      const cf = res.headers.get("cf-cache-status") || "missing";
+      const cc = res.headers.get("cache-control") || "missing";
       const isPublic = cc.toLowerCase().includes("public");
       return { cf, cc, isPublic };
     } catch {
-      return { cf: "Fehler beim Laden", cc: "Fehler beim Laden", isPublic: false };
+      return { cf: "Error loading", cc: "Error loading", isPublic: false };
     }
   }
 
@@ -238,28 +216,27 @@
       targets.map(async ({ selector, prop }) => {
         if (prop === null) return getCacheStatus(selector);
         const el = document.querySelector(selector);
-        return el ? getCacheStatus(el[prop]) : "nicht vorhanden";
+        return el ? getCacheStatus(el[prop]) : "missing";
       })
     );
 
     if (debug) {
       alert(
         `Cache Status:\n` +
+        `Server-Zeit: @now.ToString("yyyy-MM-dd HH:mm:ss") Browser-Zeit: ${new Date().toLocaleString("de-DE", { hour12: false })}\n` +
         `HTML: CF=${results[0].cf}, CC=${results[0].cc}, ${results[0].isPublic ? "✅ public" : "❌ not public"}\n` +
         `JS:   CF=${results[1].cf}, CC=${results[1].cc}, ${results[1].isPublic ? "✅ public" : "❌ not public"}\n` +
         `CSS:  CF=${results[2].cf}, CC=${results[2].cc}, ${results[2].isPublic ? "✅ public" : "❌ not public"}\n` +
         `IMG:  CF=${results[3].cf}, CC=${results[3].cc}, ${results[3].isPublic ? "✅ public" : "❌ not public"}`
       );
     } else {
-      for (let i = 0; i < targets.length; i++) {
-        const el = document.getElementById(targets[i].id);
-        if (!el) continue;
-
-        applyStatus(targets[i].id, results[i].cf);
-
-        const ccNote = results[i].isPublic ? "✅ public" : "❌ not public";
-        el.insertAdjacentHTML("afterend", ` <small>(${ccNote})</small>`);
-      }
+      document.querySelector('#app-stats').value =
+        `Cache Status:\n` +
+        `Server-Zeit: @now.ToString("yyyy-MM-dd HH:mm:ss") Browser-Zeit: ${new Date().toLocaleString("de-DE", { hour12: false })}\n` +
+        `HTML: CF=${results[0].cf}, CC=${results[0].cc}, ${results[0].isPublic ? "✅ public" : "❌ not public"}\n` +
+        `JS: CF=${results[1].cf}, CC=${results[1].cc}, ${results[1].isPublic ? "✅ public" : "❌ not public"}\n` +
+        `CSS: CF=${results[2].cf}, CC=${results[2].cc}, ${results[2].isPublic ? "✅ public" : "❌ not public"}\n` +
+        `IMG: CF=${results[3].cf}, CC=${results[3].cc}, ${results[3].isPublic ? "✅ public" : "❌ not public"}`;
     }
   }
 
@@ -284,6 +261,9 @@
   }
 
   function purgeCache(url = '') {
+    if (!url || url.trim() === "") {
+      if (!confirm("You are about to purge the entire cache. Are you sure?")) return;
+    }
     var sxc = $2sxc(6923);
     var urlParams = {};
     var postParams = {
