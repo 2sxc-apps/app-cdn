@@ -120,6 +120,7 @@
 
   var cacheMaxAge = cacheSettings.Get("MaxAge") != null ? cacheSettings.MaxAge : App.Settings.MaxAge;
   var cacheSMaxAge = cacheSettings.Get("SMaxAge") != null ? cacheSettings.SMaxAge : App.Settings.SMaxAge;
+  var cacheTag = Text.Has(cacheSettings.CacheTag) ? cacheSettings.CacheTag : App.Settings.CacheTag;
   var now = DateTime.UtcNow;
   var header = "";
 
@@ -138,7 +139,7 @@
   if (isEnabled)
   {
     @* HeaderCache.SetPublicCacheHeaders(Response, cacheMaxAge, cacheSMaxAge); *@
-    SetPublicCacheHeaders(Response, (int)cacheMaxAge, (int)cacheSMaxAge);
+    SetPublicCacheHeaders(Response, (int)cacheMaxAge, (int)cacheSMaxAge, cacheTag);
     header = $"public, max-age={cacheMaxAge}, s-maxage={cacheSMaxAge}";
   }
 }
@@ -173,6 +174,11 @@
           <li><b>CF-Cache-Status (JS):</b> <span id="cf-status-js">wird geladen...</span></li>
           <li><b>CF-Cache-Status (CSS):</b> <span id="cf-status-css">wird geladen...</span></li>
           <li><b>CF-Cache-Status (Bild):</b> <span id="cf-status-img">wird geladen...</span></li>
+        </ul>
+
+        <h3>Tags:</h3>
+        <ul>
+          <li><b>Cache Tags:</b> @(Text.Has(cacheTag) ? cacheTag : "no tags")</li>
         </ul>
       </div>
     </div>
@@ -293,12 +299,17 @@
 </script>
 
 @functions {
-  public void SetPublicCacheHeaders(HttpResponseBase Response, int browserCacheSeconds, int cloudflareCacheSeconds)
+  public void SetPublicCacheHeaders(HttpResponseBase Response, int browserCacheSeconds, int cloudflareCacheSeconds, string cacheTags = "")
   {
     Response.Cache.SetCacheability(HttpCacheability.Public);
     var ttlBrowser = TimeSpan.FromSeconds(browserCacheSeconds);
     var ttlCloudflare = TimeSpan.FromSeconds(cloudflareCacheSeconds);
     Response.Cache.SetMaxAge(ttlBrowser);
     Response.Cache.SetProxyMaxAge(ttlCloudflare);
+
+    if (cacheTags != "")
+    {
+      Response.Headers.Add("Cache-Tag", cacheTags);
+    }
   }
 }
