@@ -5,18 +5,132 @@
 @inherits ToSic.Sxc.Dnn.RazorComponent
 @using ToSic.Razor.Blade
 
-@using System.Web;
-@using System;
+@using System.Web
+@using System
+@using DotNetNuke.Entities.Portals
 
 @{
-  @* var cacheSettings = As<CacheSettings>(MyItem); *@
-  var cacheSettings = Content;
+  // Get the current tab
+  var currentTab = PortalSettings.Current;
 
-  var isEnabled = cacheSettings.Get("IsEnabled") != null ? cacheSettings.IsEnabled : App.Settings.IsEnabled;
+  // Get all cache settings items as a list
+  // var allCacheSettings = App.Data.GetAll<CacheSettings>();
+  var allCacheSettings = AsList(App.Data["CacheSettings"]);
+
+  var tab = currentTab.ActiveTab;
+  var currentTabId = Dnn.Tab.TabID;
+  dynamic cacheSettings = null; // dynamic if App.Data is dynamic, otherwise use correct type
+  dynamic notAppliedSettings = null;
+  var isParentSetting = false;
+  var applyedByParent = false;
+  var isEnabled = false;
+
+  bool found = false;
+  bool searchedParent = false;
+
+  // Search for cacheSettings for current page
+  cacheSettings = allCacheSettings?.FirstOrDefault(c => c.PageId != null && c.PageId == tab.TabID);
+
+  if (cacheSettings != null && cacheSettings.PageId == currentTabId)
+  {
+    // If found for current page, but ApplyToPage is false, search parents
+    if (cacheSettings.ApplyToPage == false)
+    {
+      searchedParent = true;
+      notAppliedSettings = cacheSettings;
+      // Search parent chain for ApplyToChildren == true
+      var parentTab = DotNetNuke.Entities.Tabs.TabController.Instance.GetTab(tab.ParentId, currentTab.PortalId, false);
+      while (parentTab != null)
+      {
+        var parentSetting = allCacheSettings?.FirstOrDefault(c => c.PageId != null && c.PageId == parentTab.TabID);
+        if (parentSetting != null && parentSetting.ApplyToChildren == true)
+        {
+          cacheSettings = parentSetting;
+          isParentSetting = true;
+          found = true;
+          break;
+        }
+        parentTab = DotNetNuke.Entities.Tabs.TabController.Instance.GetTab(parentTab.ParentId, currentTab.PortalId, false);
+      }
+    }
+    else
+    {
+      // Use current page, ApplyToPage == true
+      found = true;
+    }
+  }
+  else
+  {
+    // No settings for current page, search parent chain for ApplyToChildren == true
+    var parentTab = tab;
+    while (parentTab != null)
+    {
+      parentTab = DotNetNuke.Entities.Tabs.TabController.Instance.GetTab(parentTab.ParentId, currentTab.PortalId, false);
+      if (parentTab == null) break;
+      var parentSetting = allCacheSettings?.FirstOrDefault(c => c.PageId != null && c.PageId == parentTab.TabID);
+      if (parentSetting != null && parentSetting.ApplyToChildren == true)
+      {
+        cacheSettings = parentSetting;
+        isParentSetting = true;
+        found = true;
+        break;
+      }
+    }
+  }
+
+  // Show info if a cache setting was found in the hierarchy
+  if (found && cacheSettings != null)
+  {
+
+    applyedByParent = isParentSetting ? cacheSettings.ApplyToChildren : false;
+    isEnabled = cacheSettings.Get("IsEnabled") != null ? cacheSettings.IsEnabled : App.Settings.IsEnabled;
+
+    <div class="alert alert-success">
+      <div>Settings found from PageId: @cacheSettings.PageId</div>
+      <div>Current TabId: @currentTabId</div>
+
+      @if (isParentSetting && applyedByParent)
+      {
+        if (notAppliedSettings != null && searchedParent)
+        {
+          <div>Settings found but are NOT applied</div>
+        }
+
+        <div>Settings are applied from parent page.</div>
+      }
+
+      @if (!isParentSetting && cacheSettings.ApplyToPage)
+      {
+        <div>Settings are applied to this page.</div>
+      }
+
+      <strong>@cacheSettings.Title</strong>
+    </div>
+  }
+  else
+  {
+    <div class="alert alert-info" @Edit.TagToolbar(Content, toolbar: new[] { "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId })>
+      This has no Settings yet. Create one for the current Page: @currentTabId.
+    </div>
+    return;
+  }
+
   var cacheMaxAge = cacheSettings.Get("MaxAge") != null ? cacheSettings.MaxAge : App.Settings.MaxAge;
   var cacheSMaxAge = cacheSettings.Get("SMaxAge") != null ? cacheSettings.SMaxAge : App.Settings.SMaxAge;
   var now = DateTime.UtcNow;
   var header = "";
+
+  var toolbar = Edit.TagToolbar(cacheSettings);
+
+  if (isParentSetting && notAppliedSettings == null)
+  {
+    toolbar = Edit.TagToolbar(cacheSettings, toolbar: new[] { "-edit", "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId });
+  }
+
+  if (notAppliedSettings != null)
+  {
+    toolbar = Edit.TagToolbar(notAppliedSettings);
+  }
 
   if (isEnabled)
   {
@@ -27,11 +141,11 @@
 }
 
 @* <div class="accordion" id="app-cdn" @Kit.Toolbar.Default(MyItem)> *@
-<div class="accordion" id="app-cdn" @Edit.TagToolbar(Content)>
+<div class="accordion" id="app-cdn" @toolbar>
   <div class="accordion-item">
     <h2 class="accordion-header">
       <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
-        Cache Settings @(isEnabled ? "✔️" : "❌")
+        Caching @(isEnabled ? "enabled ✔️" : "disabled ❌")
       </button>
     </h2>
     <div id="app-cache-settings" class="accordion-collapse collapse show" data-bs-parent="#app-cdn">
@@ -49,7 +163,6 @@
 
         <h3>Stats:</h3>
         <ul>
-          @* TODO: SHOW Cache-Control Header if not public *@
           <li><b>Cache Control should be:</b> @(isEnabled? header : "❌")</li>
           <li><b>Server-Zeit (UTC):</b> <span id="server-time">@now.ToString("yyyy-MM-dd HH:mm:ss")</span></li>
           <li><b>Browser-Zeit (lokal):</b> <span id="browser-time"></span></li>
