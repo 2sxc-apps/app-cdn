@@ -143,37 +143,6 @@
   }
 }
 
-@* <div class="accordion" id="app-cdn" @Kit.Toolbar.Default(MyItem)> *@
-<div class="accordion" id="app-cdn" @toolbar>
-  <div class="accordion-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
-        Caching @(isEnabled ? "enabled ✔️" : "disabled ❌")
-      </button>
-    </h2>
-    <div id="app-cache-settings" class="accordion-collapse collapse show" data-bs-parent="#app-cdn">
-      <div class="accordion-body">
-        @* @if (MyUser.IsContentAdmin) *@
-        @if (Edit.Enabled)
-        {
-          <h3>Flush Cache</h3>
-          <div class="input-group mb-3">
-            <button class="btn btn-outline-primary" type="button" id="full-purge">Purge Everything</button>
-            <button class="btn btn-primary" type="button" id="custom-purge">Custom Purge</button>
-            <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
-          </div>
-        }
-
-        <h3>Stats:</h3>
-        <textarea class="form-control" id="app-stats" rows="7" readonly></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-
-@* <script src="@App.Folder.Url/dist/main.js"></script> *@
-@* <script src="@App.Path/dist/main.js"></script> *@
-
 <script>
   async function getCacheStatus(url) {
     try {
@@ -187,21 +156,21 @@
     }
   }
 
-  function applyStatus(targetId, status) {
-    const el = document.getElementById(targetId);
-    if (!el) return;
+  function formatCacheStatus(results) {
+    const cacheTypes = ["HTML", "JS", "CSS", "IMG"];
+    const lines = cacheTypes.map((type, i) => {
+      const { cf, cc, isPublic } = results[i] || {};
+      return `${type}: CF=${cf}, CC=${cc}, ${isPublic ? "✅ public" : "❌ not public"}`;
+    });
 
-    const colors = {
-      HIT: "green",
-      MISS: "orange",
-      EXPIRED: "orange",
-      DYNAMIC: "red",
-      BYPASS: "red",
-      "Fehler beim Laden": "red",
-    };
+    const serverTime = '@now.ToString("yyyy-MM-dd HH:mm:ss")';
+    const browserTime = new Date().toLocaleString("de-DE", { hour12: false });
 
-    el.textContent = status;
-    el.style.color = colors[status] || "black";
+    return (
+      `Cache Status:\n` +
+      `Server-Zeit: ${serverTime} Browser-Zeit: ${browserTime}\n` +
+      lines.join('\n')
+    );
   }
 
   async function doTests(debug = false) {
@@ -216,33 +185,61 @@
       targets.map(async ({ selector, prop }) => {
         if (prop === null) return getCacheStatus(selector);
         const el = document.querySelector(selector);
-        return el ? getCacheStatus(el[prop]) : "missing";
+        return el ? getCacheStatus(el[prop]) : { cf: "missing", cc: "missing", isPublic: false };
       })
     );
 
+    const statusText = formatCacheStatus(results);
+
     if (debug) {
-      alert(
-        `Cache Status:\n` +
-        `Server-Zeit: @now.ToString("yyyy-MM-dd HH:mm:ss") Browser-Zeit: ${new Date().toLocaleString("de-DE", { hour12: false })}\n` +
-        `HTML: CF=${results[0].cf}, CC=${results[0].cc}, ${results[0].isPublic ? "✅ public" : "❌ not public"}\n` +
-        `JS:   CF=${results[1].cf}, CC=${results[1].cc}, ${results[1].isPublic ? "✅ public" : "❌ not public"}\n` +
-        `CSS:  CF=${results[2].cf}, CC=${results[2].cc}, ${results[2].isPublic ? "✅ public" : "❌ not public"}\n` +
-        `IMG:  CF=${results[3].cf}, CC=${results[3].cc}, ${results[3].isPublic ? "✅ public" : "❌ not public"}`
-      );
+      alert(statusText);
     } else {
-      document.querySelector('#app-stats').value =
-        `Cache Status:\n` +
-        `Server-Zeit: @now.ToString("yyyy-MM-dd HH:mm:ss") Browser-Zeit: ${new Date().toLocaleString("de-DE", { hour12: false })}\n` +
-        `HTML: CF=${results[0].cf}, CC=${results[0].cc}, ${results[0].isPublic ? "✅ public" : "❌ not public"}\n` +
-        `JS: CF=${results[1].cf}, CC=${results[1].cc}, ${results[1].isPublic ? "✅ public" : "❌ not public"}\n` +
-        `CSS: CF=${results[2].cf}, CC=${results[2].cc}, ${results[2].isPublic ? "✅ public" : "❌ not public"}\n` +
-        `IMG: CF=${results[3].cf}, CC=${results[3].cc}, ${results[3].isPublic ? "✅ public" : "❌ not public"}`;
+      const statsEl = document.querySelector('#app-stats');
+      if (statsEl) statsEl.value = statusText;
     }
   }
 
   const debug = window.location.hash === "#debug";
-  doTests(debug);
+  if (debug) {
+    doTests(debug);
+  }
 </script>
+
+@* <div class="accordion" id="app-cdn" @Kit.Toolbar.Default(MyItem)> *@
+@if (Edit.Enabled)
+{
+  <div class="accordion" id="app-cdn" @toolbar>
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
+          Caching @(isEnabled ? "enabled ✔️" : "disabled ❌")
+        </button>
+      </h2>
+      <div id="app-cache-settings" class="accordion-collapse collapse show" data-bs-parent="#app-cdn">
+        <div class="accordion-body">
+          @* @if (MyUser.IsContentAdmin) *@
+
+          <h3>Flush Cache</h3>
+          <div class="input-group mb-3">
+            <button class="btn btn-outline-primary" type="button" id="full-purge">Purge Everything</button>
+            <button class="btn btn-primary" type="button" id="custom-purge">Custom Purge</button>
+            <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
+          </div>
+
+          <h3>Stats:</h3>
+          <textarea class="form-control" id="app-stats" rows="7" readonly></textarea>
+
+
+          <script>
+            doTests();
+          </script>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+
 
 <script>
   const customPurgeBtn = document.querySelector('#custom-purge');
