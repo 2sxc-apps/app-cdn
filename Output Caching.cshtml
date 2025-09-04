@@ -78,44 +78,16 @@
     }
   }
 
-  if (found && cacheSettings != null)
-  {
-
-    appliedByParent = isParentSetting ? cacheSettings.ApplyToChildren : false;
-    isEnabled = cacheSettings.Get("IsEnabled") != null ? cacheSettings.IsEnabled : App.Settings.IsEnabled;
-
-    <div class="alert alert-success">
-      <div>Settings found from PageId: @cacheSettings.PageId</div>
-      <div>Current TabId: @currentTabId</div>
-
-      @if (isParentSetting && appliedByParent)
-      {
-        if (notAppliedSettings != null && searchedParent)
-        {
-          <div>
-            Settings found but are <strong>NOT applied</strong><br />
-            Titel: <strong>@notAppliedSettings.Title</strong>
-          </div>
-        }
-
-        <div>Settings are applied from parent page.</div>
-      }
-
-      @if (!isParentSetting && cacheSettings.ApplyToPage)
-      {
-        <div>Settings are applied to this page.</div>
-      }
-
-      <strong>@cacheSettings.Title</strong>
-    </div>
-  }
-  else
+  if (!found || cacheSettings == null)
   {
     <div class="alert alert-info" @Edit.TagToolbar(Content, toolbar: new[] { "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId })>
       This has no Settings yet. Create one for the current Page: @currentTabId.
     </div>
     return;
   }
+
+  appliedByParent = isParentSetting ? cacheSettings.ApplyToChildren : false;
+  isEnabled = cacheSettings.Get("IsEnabled") != null ? cacheSettings.IsEnabled : App.Settings.IsEnabled;
 
   var cacheMaxAge = cacheSettings.Get("MaxAge") != null ? cacheSettings.MaxAge : App.Settings.MaxAge;
   var cacheSMaxAge = cacheSettings.Get("SMaxAge") != null ? cacheSettings.SMaxAge : App.Settings.SMaxAge;
@@ -205,7 +177,6 @@
   }
 </script>
 
-@* <div class="accordion" id="app-cdn" @Kit.Toolbar.Default(MyItem)> *@
 @if (Edit.Enabled)
 {
   <div class="accordion" id="app-cdn" @toolbar>
@@ -217,7 +188,31 @@
       </h2>
       <div id="app-cache-settings" class="accordion-collapse collapse show" data-bs-parent="#app-cdn">
         <div class="accordion-body">
-          @* @if (MyUser.IsContentAdmin) *@
+
+          <div class="alert alert-success">
+            <div>Settings found from PageId: @cacheSettings.PageId</div>
+            <div>Current TabId: @currentTabId</div>
+
+            @if (isParentSetting && appliedByParent)
+            {
+              if (notAppliedSettings != null && searchedParent)
+              {
+                <div>
+                  Settings found but are <strong>NOT applied</strong><br />
+                  Titel: <strong>@notAppliedSettings.Title</strong>
+                </div>
+              }
+
+              <div>Settings are applied from parent page.</div>
+            }
+
+            @if (!isParentSetting && cacheSettings.ApplyToPage)
+            {
+              <div>Settings are applied to this page.</div>
+            }
+
+            <strong>@cacheSettings.Title</strong>
+          </div>
 
           <h3>Flush Cache</h3>
           <div class="input-group mb-3">
@@ -229,9 +224,41 @@
           <h3>Stats:</h3>
           <textarea class="form-control" id="app-stats" rows="7" readonly></textarea>
 
-
           <script>
             doTests();
+          </script>
+
+          <script>
+            const customPurgeBtn = document.querySelector('#custom-purge');
+            if (customPurgeBtn) {
+              customPurgeBtn.addEventListener('click', function () {
+                const customUrl = document.querySelector('#custom-purge-url').value;
+                purgeCache(customUrl);
+              });
+            }
+
+            const fullPurgeBtn = document.querySelector('#full-purge');
+            if (fullPurgeBtn) {
+              fullPurgeBtn.addEventListener('click', function () {
+                purgeCache();
+              });
+            }
+
+            function purgeCache(url = '') {
+              if (!url || url.trim() === "") {
+                if (!confirm("You are about to purge the entire cache. Are you sure?")) return;
+              }
+              var sxc = $2sxc(6923);
+              var urlParams = {};
+              var postParams = {
+                flushUrl: url
+              };
+
+              sxc.webApi.post('app/auto/api/Cache/Purge', urlParams, postParams)
+                .then(data => {
+                  console.log(data)
+                });
+            }
           </script>
         </div>
       </div>
@@ -240,40 +267,6 @@
 }
 
 
-
-<script>
-  const customPurgeBtn = document.querySelector('#custom-purge');
-  if (customPurgeBtn) {
-    customPurgeBtn.addEventListener('click', function () {
-      const customUrl = document.querySelector('#custom-purge-url').value;
-      purgeCache(customUrl);
-    });
-  }
-
-  const fullPurgeBtn = document.querySelector('#full-purge');
-  if (fullPurgeBtn) {
-    fullPurgeBtn.addEventListener('click', function () {
-      purgeCache();
-    });
-  }
-
-  function purgeCache(url = '') {
-    if (!url || url.trim() === "") {
-      if (!confirm("You are about to purge the entire cache. Are you sure?")) return;
-    }
-    var sxc = $2sxc(6923);
-    var urlParams = {};
-    var postParams = {
-      flushUrl: url
-    };
-
-    sxc.webApi.post('app/auto/api/Cache/Purge', urlParams, postParams)
-      .then(data => {
-        console.log(data)
-      });
-  }
-
-</script>
 
 @functions {
   public void SetPublicCacheHeaders(HttpResponseBase Response, int browserCacheSeconds, int cloudflareCacheSeconds, string cacheTags = "")
