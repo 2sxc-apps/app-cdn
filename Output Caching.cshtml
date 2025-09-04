@@ -22,7 +22,7 @@
   dynamic cacheSettings = null; // dynamic if App.Data is dynamic, otherwise use correct type
   dynamic notAppliedSettings = null;
   var isParentSetting = false;
-  var applyedByParent = false;
+  var appliedByParent = false;
   var isEnabled = false;
 
   bool found = false;
@@ -82,18 +82,21 @@
   if (found && cacheSettings != null)
   {
 
-    applyedByParent = isParentSetting ? cacheSettings.ApplyToChildren : false;
+    appliedByParent = isParentSetting ? cacheSettings.ApplyToChildren : false;
     isEnabled = cacheSettings.Get("IsEnabled") != null ? cacheSettings.IsEnabled : App.Settings.IsEnabled;
 
     <div class="alert alert-success">
       <div>Settings found from PageId: @cacheSettings.PageId</div>
       <div>Current TabId: @currentTabId</div>
 
-      @if (isParentSetting && applyedByParent)
+      @if (isParentSetting && appliedByParent)
       {
         if (notAppliedSettings != null && searchedParent)
         {
-          <div>Settings found but are NOT applied</div>
+          <div>
+            Settings found but are <strong>NOT applied</strong><br />
+            Titel: <strong>@notAppliedSettings.Title</strong>
+          </div>
         }
 
         <div>Settings are applied from parent page.</div>
