@@ -140,6 +140,8 @@
 
     return (
       `Cache Status:\n` +
+      `Cache-Control: @header\n` +
+      `Cache-Tag: @cacheTag\n` +
       `Server-Zeit: ${serverTime} Browser-Zeit: ${browserTime}\n` +
       lines.join('\n')
     );
@@ -171,7 +173,7 @@
     }
   }
 
-  const debug = window.location.hash === "#debug";
+  const debug = window.location.hash === "#cachedebug";
   if (debug) {
     doTests(debug);
   }
@@ -190,8 +192,6 @@
         <div class="accordion-body">
 
           <div class="alert alert-success">
-            <div>Settings found from PageId: @cacheSettings.PageId</div>
-            <div>Current TabId: @currentTabId</div>
 
             @if (isParentSetting && appliedByParent)
             {
@@ -203,12 +203,13 @@
                 </div>
               }
 
-              <div>Settings are applied from parent page.</div>
+              <div>Settings are applied from parent page: @cacheSettings.PageId</div>
+              <div>Current TabId: @currentTabId</div>
             }
 
             @if (!isParentSetting && cacheSettings.ApplyToPage)
             {
-              <div>Settings are applied to this page.</div>
+              <div>Settings are applied to this page: @currentTabId</div>
             }
 
             <strong>@cacheSettings.Title</strong>
@@ -221,8 +222,13 @@
             <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
           </div>
 
+          <div class="input-group mb-3">
+            <button class="btn btn-outline-primary" type="button" id="tag-purge">Purge Tags</button>
+            <input type="text" class="form-control" value="" id="tag-purge-url">
+          </div>
+
           <h3>Stats:</h3>
-          <textarea class="form-control" id="app-stats" rows="7" readonly></textarea>
+          <textarea class="form-control" id="app-stats" rows="8" readonly></textarea>
 
           <script>
             doTests();
@@ -244,14 +250,25 @@
               });
             }
 
-            function purgeCache(url = '') {
-              if (!url || url.trim() === "") {
+            const tagPurgeBtn = document.querySelector('#tag-purge');
+            if (tagPurgeBtn) {
+              tagPurgeBtn.addEventListener('click', function () {
+                const tags = document.querySelector('#tag-purge-url').value;
+                if (tags.trim() !== "") {
+                  purgeCache('', tags);
+                }
+              });
+            }
+
+            function purgeCache(url = '', tags = '') {
+              if (!tags && (!url || url.trim() === "")) {
                 if (!confirm("You are about to purge the entire cache. Are you sure?")) return;
               }
               var sxc = $2sxc(6923);
               var urlParams = {};
               var postParams = {
-                flushUrl: url
+                flushUrl: url,
+                tags: tags
               };
 
               sxc.webApi.post('app/auto/api/Cache/Purge', urlParams, postParams)
