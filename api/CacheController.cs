@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Linq;
 using DotNetNuke.Security;
 using DotNetNuke.Web.Api;
 using ToSic.SexyContent.WebApi;
@@ -17,16 +18,35 @@ public class CacheController : SxcApiController
   {
     var apiToken = App.Settings.ApiToken;
     var zoneId = App.Settings.ZoneId;
-    string apiUrl = $"https://api.cloudflare.com/client/v4/zones/{zoneId}/purge_cache";
-    string jsonBody;
+    var apiUrl = $"https://api.cloudflare.com/client/v4/zones/{zoneId}/purge_cache";
 
-    if (bodyJson.flushUrl != null && !string.IsNullOrWhiteSpace((string)bodyJson.flushUrl))
+    object purgePayload;
+    var tagsString = (string)bodyJson.tags;
+    var flushUrl = (string)bodyJson.flushUrl;
+
+    if (!string.IsNullOrWhiteSpace(tagsString))
     {
-      jsonBody = JsonConvert.SerializeObject(new { files = new[] { (string)bodyJson.flushUrl } });
+        var tags = tagsString.Split(',')
+            .Select(t => t.Trim())
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .ToArray();
+
+        if (tags.Length > 0)
+        {
+            purgePayload = new { tags };
+        }
+        else
+        {
+            purgePayload = new { purge_everything = true };
+        }
+    }
+    else if (!string.IsNullOrWhiteSpace(flushUrl))
+    {
+        purgePayload = new { files = new[] { flushUrl } };
     }
     else
     {
-      jsonBody = JsonConvert.SerializeObject(new { purge_everything = true });
+        purgePayload = new { purge_everything = true };
     }
 
     using (var client = new HttpClient())
@@ -36,6 +56,7 @@ public class CacheController : SxcApiController
       // client.DefaultRequestHeaders.Add("X-Auth-Email", email);
       client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiToken}");
 
+      var jsonBody = JsonConvert.SerializeObject(purgePayload);
       var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
       try
       {
