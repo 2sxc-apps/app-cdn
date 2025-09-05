@@ -139,7 +139,7 @@
     const browserTime = new Date().toLocaleString("de-DE", { hour12: false });
 
     return (
-      `Cache Status:\n` +
+      `Cache Status: @(isEnabled ? "enabled" : "disabled")\n` +
       `Cache-Control: @header\n` +
       `Cache-Tag: @cacheTag\n` +
       `Server-Zeit: ${serverTime} Browser-Zeit: ${browserTime}\n` +
