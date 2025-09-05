@@ -256,62 +256,19 @@
             <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous)</div>
             <textarea class="form-control" id="app-stats" rows="8" readonly></textarea>
           }
-          <!-- Server-Rendertime: @now.ToString("yyyy-MM-dd HH:mm:ss") -->
 
           <script>
             showCacheInfo();
           </script>
 
-          <script>
-            const customPurgeBtn = document.querySelector('#custom-purge');
-            if (customPurgeBtn) {
-              customPurgeBtn.addEventListener('click', function () {
-                const customUrl = document.querySelector('#custom-purge-url').value;
-                purgeCache(customUrl);
-              });
-            }
-
-            const fullPurgeBtn = document.querySelector('#full-purge');
-            if (fullPurgeBtn) {
-              fullPurgeBtn.addEventListener('click', function () {
-                purgeCache();
-              });
-            }
-
-            const tagPurgeBtn = document.querySelector('#tag-purge');
-            if (tagPurgeBtn) {
-              tagPurgeBtn.addEventListener('click', function () {
-                const tags = document.querySelector('#tag-purge-url').value;
-                if (tags.trim() !== "") {
-                  purgeCache('', tags);
-                } else {
-                  alert("Please enter at least one tag to purge.");
-                }
-              });
-            }
-
-            function purgeCache(url = '', tags = '') {
-              if (!tags && (!url || url.trim() === "")) {
-                if (!confirm("You are about to purge the entire cache. Are you sure?")) return;
-              }
-              var sxc = $2sxc(6923);
-              var urlParams = {};
-              var postParams = {
-                flushUrl: url,
-                tags: tags
-              };
-
-              sxc.webApi.post('app/auto/api/Cache/Purge', urlParams, postParams)
-                .then(data => {
-                  console.log(data)
-                });
-            }
-          </script>
         </div>
       </div>
     </div>
   </div>
 }
+
+<!-- Server-Rendertime: @now.ToString("yyyy-MM-dd HH:mm:ss") -->
+<script src="@App.Path/dist/index.js"></script>
 
 @functions {
   public void SetPublicCacheHeaders(HttpResponseBase Response, int browserCacheSeconds, int cloudflareCacheSeconds, string cacheTags = "")
