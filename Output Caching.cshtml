@@ -81,7 +81,7 @@
   if (!found || cacheSettings == null)
   {
     <div class="alert alert-info" @Edit.TagToolbar(Content, toolbar: new[] { "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId })>
-      This has no Settings yet. Create one for the current Page: @currentTabId.
+      @App.Resources.MsgNoSettings @currentTabId.
     </div>
     return;
   }
@@ -147,7 +147,7 @@
     );
   }
 
-  async function doTests(debug = false) {
+  async function showCacheInfo(debug = false) {
     const targets = [
       { selector: window.location.href, prop: null, id: "cf-status-html" },
       { selector: "script[src]", prop: "src", id: "cf-status-js" },
@@ -175,9 +175,21 @@
 
   const debug = window.location.hash === "#cachedebug";
   if (debug) {
-    doTests(debug);
+    showCacheInfo(debug);
   }
 </script>
+
+@{
+  // Get the value of the Cache-Control response header, if available
+  var cacheControlHeader = "";
+  if (Response.Headers.AllKeys.Contains("Cache-Control"))
+  {
+    cacheControlHeader = Response.Headers["Cache-Control"];
+  }
+}
+<div>
+  <strong>Cache-Control Header:</strong> @cacheControlHeader
+</div>
 
 @if (Edit.Enabled)
 {
@@ -185,7 +197,7 @@
     <div class="accordion-item">
       <h2 class="accordion-header">
         <button class="accordion-button @(App.Settings.OpenSettings ? "" : "collapsed")" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
-          Caching @(isEnabled ? "enabled ✔️" : "disabled ❌")
+          Caching @(isEnabled? App.Resources.LabelEnabled + " ✔️" : App.Resources.LabelDisabled + " ❌")
         </button>
       </h2>
       <div id="app-cache-settings" class="accordion-collapse @(App.Settings.OpenSettings ? "collapse show" : "collapse")" data-bs-parent="#app-cdn">
@@ -198,56 +210,56 @@
               if (notAppliedSettings != null && searchedParent)
               {
                 <div>
-                  Settings found but are <strong>NOT applied</strong>
+                  @Html.Raw(App.Resources.MsgNotAppliedSettings)
                   @if (Text.Has(notAppliedSettings.Title))
                   {
-                  <br />
-                  Titel: < strong > @notAppliedSettings.Title </ strong >
-                              }
+                    <div>@App.Resources.LabelTitle <strong>@notAppliedSettings.Title</strong></div>
+                  }
                 </div>
               }
 
-              <div>Settings are applied from parent page: @cacheSettings.PageId</div>
-              <div>Current TabId: @currentTabId</div>
+              <div>@App.Resources.MsgAppliedFromParent @cacheSettings.PageId</div>
+              <div>@App.Resources.LabelCurrentTabId @currentTabId</div>
             }
 
             @if (!isParentSetting && cacheSettings.ApplyToPage)
             {
-              <div>Settings are applied to this page: @currentTabId</div>
+              <div>@App.Resources.MsgAppliedToPage @currentTabId</div>
             }
 
             @if (Text.Has(cacheSettings.Title))
             {
-              <strong>@cacheSettings.Title</strong>
+              <div>@App.Resources.LabelTitle <strong>@cacheSettings.Title</strong></div>
             }
 
             <div><strong>MaxAge:</strong> @cacheMaxAge <strong>SMaxAge:</strong> @cacheSMaxAge</div>
           </div>
 
-          <h3>Flush Cache</h3>
+          <h3>Cache</h3>
           <div class="input-group mb-3">
-            <button class="btn btn-primary" type="button" id="custom-purge">Custom Purge</button>
+            <button class="btn btn-primary" type="button" id="custom-purge">@App.Resources.FlushUrl</button>
             <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
           </div>
 
           <div class="input-group mb-3">
-            <button class="btn btn-outline-primary" type="button" id="tag-purge">Purge Tags</button>
+            <button class="btn btn-outline-primary" type="button" id="tag-purge">@App.Resources.FlushTags</button>
             <input type="text" class="form-control" value="" id="tag-purge-url">
           </div>
 
           <div class="input-group mb-3">
-            <button class="btn btn-outline-primary" type="button" id="full-purge">Purge Everything</button>
+            <button class="btn btn-outline-primary" type="button" id="full-purge">@App.Resources.FlushAll</button>
           </div>
 
           @if (PortalSettings.Current.UserInfo.IsSuperUser)
           {
-            <h3>Stats:</h3>
+            <h3>@App.Resources.LabelStats</h3>
+            <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous)</div>
             <textarea class="form-control" id="app-stats" rows="8" readonly></textarea>
           }
           <!-- Server-Rendertime: @now.ToString("yyyy-MM-dd HH:mm:ss") -->
 
           <script>
-            doTests();
+            showCacheInfo();
           </script>
 
           <script>
