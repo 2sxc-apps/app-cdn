@@ -181,25 +181,29 @@
 
 @if (Edit.Enabled)
 {
-  <div class="accordion" id="app-cdn" @toolbar>
+  <div class="accordion" id="app-cdn">
     <div class="accordion-item">
       <h2 class="accordion-header">
-        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
+        <button class="accordion-button @(App.Settings.OpenSettings ? "" : "collapsed")" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
           Caching @(isEnabled ? "enabled ✔️" : "disabled ❌")
         </button>
       </h2>
-      <div id="app-cache-settings" class="accordion-collapse collapse show" data-bs-parent="#app-cdn">
+      <div id="app-cache-settings" class="accordion-collapse @(App.Settings.OpenSettings ? "collapse show" : "collapse")" data-bs-parent="#app-cdn">
         <div class="accordion-body">
 
-          <div class="alert alert-success">
+          <div class="alert alert-success" @toolbar>
 
             @if (isParentSetting && appliedByParent)
             {
               if (notAppliedSettings != null && searchedParent)
               {
                 <div>
-                  Settings found but are <strong>NOT applied</strong><br />
-                  Titel: <strong>@notAppliedSettings.Title</strong>
+                  Settings found but are <strong>NOT applied</strong>
+                  @if (Text.Has(notAppliedSettings.Title))
+                  {
+                  <br />
+                  Titel: < strong > @notAppliedSettings.Title </ strong >
+                              }
                 </div>
               }
 
@@ -212,12 +216,16 @@
               <div>Settings are applied to this page: @currentTabId</div>
             }
 
-            <strong>@cacheSettings.Title</strong>
+            @if (Text.Has(cacheSettings.Title))
+            {
+              <strong>@cacheSettings.Title</strong>
+            }
+
+            <div><strong>MaxAge:</strong> @cacheMaxAge <strong>SMaxAge:</strong> @cacheSMaxAge</div>
           </div>
 
           <h3>Flush Cache</h3>
           <div class="input-group mb-3">
-            <button class="btn btn-outline-primary" type="button" id="full-purge">Purge Everything</button>
             <button class="btn btn-primary" type="button" id="custom-purge">Custom Purge</button>
             <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
           </div>
@@ -227,8 +235,16 @@
             <input type="text" class="form-control" value="" id="tag-purge-url">
           </div>
 
-          <h3>Stats:</h3>
-          <textarea class="form-control" id="app-stats" rows="8" readonly></textarea>
+          <div class="input-group mb-3">
+            <button class="btn btn-outline-primary" type="button" id="full-purge">Purge Everything</button>
+          </div>
+
+          @if (PortalSettings.Current.UserInfo.IsSuperUser)
+          {
+            <h3>Stats:</h3>
+            <textarea class="form-control" id="app-stats" rows="8" readonly></textarea>
+          }
+          <!-- Server-Rendertime: @now.ToString("yyyy-MM-dd HH:mm:ss") -->
 
           <script>
             doTests();
@@ -256,6 +272,8 @@
                 const tags = document.querySelector('#tag-purge-url').value;
                 if (tags.trim() !== "") {
                   purgeCache('', tags);
+                } else {
+                  alert("Please enter at least one tag to purge.");
                 }
               });
             }
@@ -282,8 +300,6 @@
     </div>
   </div>
 }
-
-
 
 @functions {
   public void SetPublicCacheHeaders(HttpResponseBase Response, int browserCacheSeconds, int cloudflareCacheSeconds, string cacheTags = "")

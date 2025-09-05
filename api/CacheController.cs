@@ -52,8 +52,6 @@ public class CacheController : SxcApiController
     using (var client = new HttpClient())
     {
       client.Timeout = TimeSpan.FromSeconds(15); // Set timeout
-      // client.DefaultRequestHeaders.Add("X-Auth-Key", apiKey);
-      // client.DefaultRequestHeaders.Add("X-Auth-Email", email);
       client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiToken}");
 
       var jsonBody = JsonConvert.SerializeObject(purgePayload);
