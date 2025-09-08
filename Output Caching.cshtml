@@ -11,56 +11,31 @@
 @using DotNetNuke.Entities.Tabs;
 
 @{
-  var portal = PortalSettings.Current;
-  var tab = portal.ActiveTab;
   var currentTabId = Dnn.Tab.TabID;
 
   // var allCacheSettings = App.Data.GetAll<CacheSettings>();
   var allCacheSettings = AsList(App.Data["CacheSettings"]);
 
-  dynamic notAppliedSettings = null;
-  bool isParentSetting = false;
-  bool searchedParent = false;
-  bool found = false;
-
   // First, try to find a setting which references the current page
-  dynamic cacheSettings = allCacheSettings?.FirstOrDefault(c => c.PageId == tab.TabID);
+  var status = new SettingsBundle {
+    ForPageId = currentTabId,
+    OfPageId = currentTabId,
+    Settings = allCacheSettings?.FirstOrDefault(c => c.PageId == currentTabId),
+    IgnoredPageSettings = null,
+    TriedParents = false
+  };
 
-  // Check if the setting does NOT apply to this specific page
-  if (cacheSettings != null && cacheSettings.ApplyToPage == false)
+  // We don't have a rule for this page, or it doesn't apply
+  // check if a parent page has a rule which applies to children
+  if (status.Settings == null || status.Settings.ApplyToPage == false)
   {
-    // We'll now search for rules of the parent pages
-    searchedParent = true;
-    notAppliedSettings = cacheSettings;
-    cacheSettings = FindParentCacheSetting(tab, allCacheSettings, portal.PortalId);
-
-    // If we found a parent-page rule, update variables
-    if (cacheSettings != null)
-    {
-      isParentSetting = true;
-      found = true;
-    }
-  }
-  else if (cacheSettings != null)
-  {
-    // We have a rule, and obviously it applies to this page
-    found = true;
-  }
-  // We don't have a rule for this page, so let's see if a parent page has a rule which applies to children
-  else
-  {
-    cacheSettings = FindParentCacheSetting(tab, allCacheSettings, portal.PortalId);
-    if (cacheSettings != null)
-    {
-      isParentSetting = true;
-      found = true;
-    }
+    status = FindParentCacheSetting(status, allCacheSettings);
   }
 }
 
 @* If no rules found - show an info + button to optionally add a rule *@
 @* TODO: @2ro - this looks wrong - it would show for all users? + why not show the stats etc. just because it's disabled ? *@
-@if (!found || cacheSettings == null)
+@if (!status.Found)
 {
   <div class="alert alert-info" @Edit.TagToolbar(Content, toolbar: new[] { "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId })>
     @App.Resources.MsgNoSettings @currentTabId.
@@ -69,23 +44,21 @@
 }
 
 @{
-  var isEnabled = cacheSettings.Get("IsEnabled") != null
-    ? cacheSettings.IsEnabled
+  var isEnabled = status.Settings.Get("IsEnabled") != null
+    ? status.Settings.IsEnabled
     : App.Settings.IsEnabled;
 
-  var cacheMaxAge = cacheSettings.Get("MaxAge") != null
-    ? cacheSettings.MaxAge
+  var cacheMaxAge = status.Settings.Get("MaxAge") != null
+    ? status.Settings.MaxAge
     : App.Settings.MaxAge;
 
-  var cacheSMaxAge = cacheSettings.Get("SMaxAge") != null
-    ? cacheSettings.SMaxAge
+  var cacheSMaxAge = status.Settings.Get("SMaxAge") != null
+    ? status.Settings.SMaxAge
     : App.Settings.SMaxAge;
 
-  var cacheTag = Text.Has(cacheSettings.CacheTag)
-    ? cacheSettings.CacheTag
-    : App.Settings.CacheTag;
+  var cacheTag = Text.First(status.Settings.CacheTag, App.Settings.CacheTag);
 
-  var now = DateTime.UtcNow;
+  var timeStamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
 
   var header = "";
   if (isEnabled)
@@ -97,29 +70,29 @@
 }
 
 @* Add a hidden timestamp to better debug any issues *@
-<!-- Server Timestamp: @now.ToString("yyyy-MM-dd HH:mm:ss") -->
+<!-- Server Timestamp: @timeStamp -->
 
 @* Add scripts etc. to optionally show caching information in anonymous mode, if the correct link is used *@
 @* TODO: @2ro - this looks wrong, the JS is "blocking" and there is no turn-on to ensure the code works as expected*@
 <script src="@App.Path/dist/index.js"></script>
 <script>
-  window.initCacheStatus(@isEnabled.ToString().ToLower(), "@header", "@cacheTag", "@now.ToString("yyyy-MM-dd HH:mm:ss")");
-</script>
+    window.initCacheStatus(@isEnabled.ToString().ToLower(), "@header", "@cacheTag", "@timeStamp");
+  </script>
 
 @* Show Admin Area to Editors *@
 @if (Edit.Enabled)
 {
   // Determine best toolbar
-  var toolbar = Edit.TagToolbar(cacheSettings);
+  var toolbar = Edit.TagToolbar(status.Settings);
 
-  if (isParentSetting && notAppliedSettings == null)
+  if (status.IsOfParent && status.IgnoredPageSettings == null)
   {
-    toolbar = Edit.TagToolbar(cacheSettings, toolbar: new[] { "-edit", "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId });
+    toolbar = Edit.TagToolbar(status.Settings, toolbar: new[] { "-edit", "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId });
   }
 
-  if (notAppliedSettings != null)
+  if (status.IgnoredPageSettings != null)
   {
-    toolbar = Edit.TagToolbar(notAppliedSettings);
+    toolbar = Edit.TagToolbar(status.IgnoredPageSettings);
   }
 
   @* Accordion with everything *@
@@ -139,34 +112,36 @@
           @* Green box showing which settings are being used *@
           <div class="alert alert-success" @toolbar>
 
-            @if (isParentSetting && cacheSettings.ApplyToChildren)
+            @if (status.IsOfParent && status.Settings.ApplyToChildren)
             {
-              if (notAppliedSettings != null && searchedParent)
+              if (status.IgnoredPageSettings != null && status.TriedParents)
               {
                 <div>
                   @Html.Raw(App.Resources.MsgNotAppliedSettings)
-                  @if (Text.Has(notAppliedSettings.Title))
-                  {
-                    <div>@App.Resources.LabelTitle <strong>@notAppliedSettings.Title</strong></div>
-                  }
+                  <div>@App.Resources.LabelTitle <strong>@Text.First(status.IgnoredPageSettings.Title, "-")</strong></div>
                 </div>
               }
 
-              <div>@App.Resources.MsgAppliedFromParent @cacheSettings.PageId</div>
+              <div>@App.Resources.MsgAppliedFromParent @status.Settings.PageId</div>
               <div>@App.Resources.LabelCurrentTabId @currentTabId</div>
             }
 
-            @if (!isParentSetting && cacheSettings.ApplyToPage)
+            @if (!status.IsOfParent && status.Settings.ApplyToPage)
             {
               <div>@App.Resources.MsgAppliedToPage @currentTabId</div>
             }
 
-            @if (Text.Has(cacheSettings.Title))
-            {
-              <div>@App.Resources.LabelTitle <strong>@cacheSettings.Title</strong></div>
-            }
+            <div>@App.Resources.LabelTitle <strong>@Text.First(status.Settings.Title, "-")</strong></div>
+            <div>
+              @App.Resources.LabelSettings
+              <strong>MaxAge:</strong> <code>@cacheMaxAge</code>;
+              <strong>SMaxAge:</strong> <code>@cacheSMaxAge</code>;
+              <strong>Cache-Tag:</strong> <code>@Text.First(cacheTag, "-")</code>
+            </div>
 
-            <div><strong>MaxAge:</strong> @cacheMaxAge <strong>SMaxAge:</strong> @cacheSMaxAge</div>
+            @* Info to see the final stats in anonymous mode is for everybody *@
+            <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous)</div>
+
           </div>
 
           <h3>@App.Resources.FlushTitle</h3>
@@ -184,11 +159,11 @@
             <button class="btn btn-outline-primary" type="button" id="full-purge">@App.Resources.FlushAll</button>
           </div>
 
+          @* Only show statistics to super users, and others would be confused *@
           @if (PortalSettings.Current.UserInfo.IsSuperUser)
           {
             <h3>@App.Resources.StatisticsTitle</h3>
             @Html.Raw(App.Resources.StatisticsIntro)
-            <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous)</div>
             <textarea class="form-control" id="app-stats" rows="8" readonly></textarea>
           }
         </div>
@@ -212,27 +187,43 @@
     }
   }
 
-  public dynamic FindParentCacheSetting(TabInfo tab, IEnumerable<dynamic> allSettings, int portalId)
+  private SettingsBundle FindParentCacheSetting(SettingsBundle original, IEnumerable<dynamic> allSettings)
   {
-    var parentTab = tab;
+    var portalId = PortalSettings.Current.PortalId;
+    var parentTab = PortalSettings.Current.ActiveTab;
     while (parentTab != null)
     {
-      parentTab = TabController.Instance.GetTab(parentTab.ParentId, portalId, false);
+      // Check if we have a parent-page
+      var parentId = parentTab.ParentId;
+      parentTab = TabController.Instance.GetTab(parentId, portalId, false);
       if (parentTab == null)
         break;
 
-      var parentSetting = allSettings?.FirstOrDefault(c => c.PageId == parentTab.TabID);
+      // See if the parent page has a setting which applies to children
+      var parentSetting = allSettings?.FirstOrDefault(c => c.PageId == parentId);
       if (parentSetting?.ApplyToChildren == true)
-      {
-        return parentSetting;
-      }
+        return new SettingsBundle(original) { OfPageId = parentId, Settings = parentSetting };
     }
-    return null;  
+    return new SettingsBundle(original) { OfPageId = 0, Settings = null };
   }
 
   private class SettingsBundle
   {
-    public int OfPageId { get; set; }
-    public dynamic Settings { get; set; }
+    public SettingsBundle() { }
+
+    public SettingsBundle(SettingsBundle original)
+    {
+      ForPageId = original.ForPageId;
+      IgnoredPageSettings = original.Settings;
+      TriedParents = true;
+    }
+
+    public int ForPageId;
+    public bool IsOfParent { get { return ForPageId != OfPageId; } }
+    public int OfPageId;
+    public bool Found { get { return Settings != null; } }
+    public dynamic Settings;
+    public dynamic IgnoredPageSettings;
+    public bool TriedParents;
   }
 }
