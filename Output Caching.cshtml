@@ -18,18 +18,23 @@
   // var allCacheSettings = App.Data.GetAll<CacheSettings>();
   var allCacheSettings = AsList(App.Data["CacheSettings"]);
 
-  dynamic cacheSettings = allCacheSettings?.FirstOrDefault(c => c.PageId == tab.TabID);
   dynamic notAppliedSettings = null;
   bool isParentSetting = false;
   bool searchedParent = false;
   bool found = false;
 
+  // First, try to find a setting which references the current page
+  dynamic cacheSettings = allCacheSettings?.FirstOrDefault(c => c.PageId == tab.TabID);
+
+  // Check if the setting does NOT apply to this specific page
   if (cacheSettings != null && cacheSettings.ApplyToPage == false)
   {
+    // We'll now search for rules of the parent pages
     searchedParent = true;
     notAppliedSettings = cacheSettings;
     cacheSettings = FindParentCacheSetting(tab, allCacheSettings, portal.PortalId);
 
+    // If we found a parent-page rule, update variables
     if (cacheSettings != null)
     {
       isParentSetting = true;
@@ -38,8 +43,10 @@
   }
   else if (cacheSettings != null)
   {
+    // We have a rule, and obviously it applies to this page
     found = true;
   }
+  // We don't have a rule for this page, so let's see if a parent page has a rule which applies to children
   else
   {
     cacheSettings = FindParentCacheSetting(tab, allCacheSettings, portal.PortalId);
@@ -49,15 +56,19 @@
       found = true;
     }
   }
+}
 
-  if (!found || cacheSettings == null)
-  {
-    <div class="alert alert-info" @Edit.TagToolbar(Content, toolbar: new[] { "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId })>
-      @App.Resources.MsgNoSettings @currentTabId.
-    </div>
-    return;
-  }
+@* If no rules found - show an info + button to optionally add a rule *@
+@* TODO: @2ro - this looks wrong - it would show for all users? + why not show the stats etc. just because it's disabled ? *@
+@if (!found || cacheSettings == null)
+{
+  <div class="alert alert-info" @Edit.TagToolbar(Content, toolbar: new[] { "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId })>
+    @App.Resources.MsgNoSettings @currentTabId.
+  </div>
+  return;
+}
 
+@{
   var isEnabled = cacheSettings.Get("IsEnabled") != null
     ? cacheSettings.IsEnabled
     : App.Settings.IsEnabled;
@@ -75,8 +86,30 @@
     : App.Settings.CacheTag;
 
   var now = DateTime.UtcNow;
-  var header = "";
 
+  var header = "";
+  if (isEnabled)
+  {
+    @* HeaderCache.SetPublicCacheHeaders(Response, cacheMaxAge, cacheSMaxAge); *@
+    SetPublicCacheHeaders(Response, (int)cacheMaxAge, (int)cacheSMaxAge, cacheTag);
+    header = $"public, max-age={cacheMaxAge}, s-maxage={cacheSMaxAge}";
+  }
+}
+
+@* Add a hidden timestamp to better debug any issues *@
+<!-- Server Timestamp: @now.ToString("yyyy-MM-dd HH:mm:ss") -->
+
+@* Add scripts etc. to optionally show caching information in anonymous mode, if the correct link is used *@
+@* TODO: @2ro - this looks wrong, the JS is "blocking" and there is no turn-on to ensure the code works as expected*@
+<script src="@App.Path/dist/index.js"></script>
+<script>
+  window.initCacheStatus(@isEnabled.ToString().ToLower(), "@header", "@cacheTag", "@now.ToString("yyyy-MM-dd HH:mm:ss")");
+</script>
+
+@* Show Admin Area to Editors *@
+@if (Edit.Enabled)
+{
+  // Determine best toolbar
   var toolbar = Edit.TagToolbar(cacheSettings);
 
   if (isParentSetting && notAppliedSettings == null)
@@ -89,32 +122,21 @@
     toolbar = Edit.TagToolbar(notAppliedSettings);
   }
 
-  if (isEnabled)
-  {
-    @* HeaderCache.SetPublicCacheHeaders(Response, cacheMaxAge, cacheSMaxAge); *@
-    SetPublicCacheHeaders(Response, (int)cacheMaxAge, (int)cacheSMaxAge, cacheTag);
-    header = $"public, max-age={cacheMaxAge}, s-maxage={cacheSMaxAge}";
-  }
-}
-
-<!-- Server-Rendertime: @now.ToString("yyyy-MM-dd HH:mm:ss") -->
-<script src="@App.Path/dist/index.js"></script>
-<script>
-  window.initCacheStatus(@isEnabled.ToString().ToLower(), "@header", "@cacheTag", "@now.ToString("yyyy-MM-dd HH:mm:ss")");
-</script>
-
-@if (Edit.Enabled)
-{
+  @* Accordion with everything *@
   <div class="accordion" id="app-cdn">
     <div class="accordion-item">
+      @* Accordion Header with status information *@
       <h2 class="accordion-header">
         <button class="accordion-button @(App.Settings.OpenSettings ? "" : "collapsed")" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
-          Caching @(isEnabled ? App.Resources.LabelEnabled + " ✔️" : App.Resources.LabelDisabled + " ❌")
+          Output Caching @(isEnabled ? App.Resources.LabelEnabled + " ✔️" : App.Resources.LabelDisabled + " ❌")
         </button>
       </h2>
-      <div id="app-cache-settings" class="accordion-collapse @(App.Settings.OpenSettings ? "collapse show" : "collapse")" data-bs-parent="#app-cdn">
+
+      @* Accordion Body with settings and stats; should be collapsed in production (see App setting for that) *@
+      <div id="app-cache-settings" class="accordion-collapse collapse @(App.Settings.OpenSettings ? "show" : "")" data-bs-parent="#app-cdn">
         <div class="accordion-body">
 
+          @* Green box showing which settings are being used *@
           <div class="alert alert-success" @toolbar>
 
             @if (isParentSetting && cacheSettings.ApplyToChildren)
@@ -147,7 +169,7 @@
             <div><strong>MaxAge:</strong> @cacheMaxAge <strong>SMaxAge:</strong> @cacheSMaxAge</div>
           </div>
 
-          <h3>Cache</h3>
+          <h3>@App.Resources.FlushTitle</h3>
           <div class="input-group mb-3">
             <button class="btn btn-primary" type="button" id="custom-purge">@App.Resources.FlushUrl</button>
             <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
@@ -164,7 +186,8 @@
 
           @if (PortalSettings.Current.UserInfo.IsSuperUser)
           {
-            <h3>@App.Resources.LabelStats</h3>
+            <h3>@App.Resources.StatisticsTitle</h3>
+            @Html.Raw(App.Resources.StatisticsIntro)
             <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous)</div>
             <textarea class="form-control" id="app-stats" rows="8" readonly></textarea>
           }
@@ -195,7 +218,8 @@
     while (parentTab != null)
     {
       parentTab = TabController.Instance.GetTab(parentTab.ParentId, portalId, false);
-      if (parentTab == null) break;
+      if (parentTab == null)
+        break;
 
       var parentSetting = allSettings?.FirstOrDefault(c => c.PageId == parentTab.TabID);
       if (parentSetting?.ApplyToChildren == true)
@@ -204,4 +228,11 @@
       }
     }
     return null;  
+  }
+
+  private class SettingsBundle
+  {
+    public int OfPageId { get; set; }
+    public dynamic Settings { get; set; }
+  }
 }
