@@ -10,10 +10,8 @@
 @using DotNetNuke.Entities.Portals
 
 @{
-  // Get the current tab
   var currentTab = PortalSettings.Current;
 
-  // Get all cache settings items as a list
   // var allCacheSettings = App.Data.GetAll<CacheSettings>();
   var allCacheSettings = AsList(App.Data["CacheSettings"]);
 
@@ -82,9 +80,9 @@
   }
 
   appliedByParent = isParentSetting
-    ? cacheSettings.ApplyToChildren
-    : false;
-  
+  ? cacheSettings.ApplyToChildren
+  : false;
+
   isEnabled = cacheSettings.Get("IsEnabled") != null
     ? cacheSettings.IsEnabled
     : App.Settings.IsEnabled;
@@ -126,6 +124,9 @@
 
 <!-- Server-Rendertime: @now.ToString("yyyy-MM-dd HH:mm:ss") -->
 <script src="@App.Path/dist/index.js"></script>
+<script>
+  window.initCacheStatus(@isEnabled.ToString().ToLower(), "@header", "@cacheTag", "@now.ToString("yyyy-MM-dd HH:mm:ss")");
+</script>
 
 @if (Edit.Enabled)
 {
@@ -192,11 +193,6 @@
             <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous)</div>
             <textarea class="form-control" id="app-stats" rows="8" readonly></textarea>
           }
-
-          <script>
-            window.initCacheStatus(@isEnabled.ToString().ToLower(), "@header", "@cacheTag", "@now.ToString("yyyy-MM-dd HH:mm:ss")");
-          </script>
-
         </div>
       </div>
     </div>
