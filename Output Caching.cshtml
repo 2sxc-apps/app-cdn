@@ -1,6 +1,6 @@
 @* @inherits AppCode.Razor.AppRazor
-@using AppCode.Data *@
-@* @using AppCode.Helpers *@
+@using AppCode.Data
+@using AppCode.Helpers *@
 
 @inherits ToSic.Sxc.Dnn.RazorComponent
 @using ToSic.Razor.Blade
@@ -8,66 +8,45 @@
 @using System.Web
 @using System
 @using DotNetNuke.Entities.Portals
+@using DotNetNuke.Entities.Tabs;
 
 @{
-  var currentTab = PortalSettings.Current;
+  var portal = PortalSettings.Current;
+  var tab = portal.ActiveTab;
+  var currentTabId = Dnn.Tab.TabID;
 
   // var allCacheSettings = App.Data.GetAll<CacheSettings>();
   var allCacheSettings = AsList(App.Data["CacheSettings"]);
 
-  var tab = currentTab.ActiveTab;
-  var currentTabId = Dnn.Tab.TabID;
-  dynamic cacheSettings = null;
+  dynamic cacheSettings = allCacheSettings?.FirstOrDefault(c => c.PageId == tab.TabID);
   dynamic notAppliedSettings = null;
-  var isParentSetting = false;
-  var appliedByParent = false;
-  var isEnabled = false;
-
-  bool found = false;
+  bool isParentSetting = false;
   bool searchedParent = false;
+  bool found = false;
 
-  cacheSettings = allCacheSettings?.FirstOrDefault(c => c.PageId != null && c.PageId == tab.TabID);
-
-  if (cacheSettings != null && cacheSettings.PageId == currentTabId)
+  if (cacheSettings != null && cacheSettings.ApplyToPage == false)
   {
-    if (cacheSettings.ApplyToPage == false)
+    searchedParent = true;
+    notAppliedSettings = cacheSettings;
+    cacheSettings = FindParentCacheSetting(tab, allCacheSettings, portal.PortalId);
+
+    if (cacheSettings != null)
     {
-      searchedParent = true;
-      notAppliedSettings = cacheSettings;
-      var parentTab = DotNetNuke.Entities.Tabs.TabController.Instance.GetTab(tab.ParentId, currentTab.PortalId, false);
-      while (parentTab != null)
-      {
-        var parentSetting = allCacheSettings?.FirstOrDefault(c => c.PageId != null && c.PageId == parentTab.TabID);
-        if (parentSetting != null && parentSetting.ApplyToChildren == true)
-        {
-          cacheSettings = parentSetting;
-          isParentSetting = true;
-          found = true;
-          break;
-        }
-        parentTab = DotNetNuke.Entities.Tabs.TabController.Instance.GetTab(parentTab.ParentId, currentTab.PortalId, false);
-      }
-    }
-    else
-    {
+      isParentSetting = true;
       found = true;
     }
   }
+  else if (cacheSettings != null)
+  {
+    found = true;
+  }
   else
   {
-    var parentTab = tab;
-    while (parentTab != null)
+    cacheSettings = FindParentCacheSetting(tab, allCacheSettings, portal.PortalId);
+    if (cacheSettings != null)
     {
-      parentTab = DotNetNuke.Entities.Tabs.TabController.Instance.GetTab(parentTab.ParentId, currentTab.PortalId, false);
-      if (parentTab == null) break;
-      var parentSetting = allCacheSettings?.FirstOrDefault(c => c.PageId != null && c.PageId == parentTab.TabID);
-      if (parentSetting != null && parentSetting.ApplyToChildren == true)
-      {
-        cacheSettings = parentSetting;
-        isParentSetting = true;
-        found = true;
-        break;
-      }
+      isParentSetting = true;
+      found = true;
     }
   }
 
@@ -79,11 +58,7 @@
     return;
   }
 
-  appliedByParent = isParentSetting
-  ? cacheSettings.ApplyToChildren
-  : false;
-
-  isEnabled = cacheSettings.Get("IsEnabled") != null
+  var isEnabled = cacheSettings.Get("IsEnabled") != null
     ? cacheSettings.IsEnabled
     : App.Settings.IsEnabled;
 
@@ -134,7 +109,7 @@
     <div class="accordion-item">
       <h2 class="accordion-header">
         <button class="accordion-button @(App.Settings.OpenSettings ? "" : "collapsed")" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
-          Caching @(isEnabled? App.Resources.LabelEnabled + " ✔️" : App.Resources.LabelDisabled + " ❌")
+          Caching @(isEnabled ? App.Resources.LabelEnabled + " ✔️" : App.Resources.LabelDisabled + " ❌")
         </button>
       </h2>
       <div id="app-cache-settings" class="accordion-collapse @(App.Settings.OpenSettings ? "collapse show" : "collapse")" data-bs-parent="#app-cdn">
@@ -142,7 +117,7 @@
 
           <div class="alert alert-success" @toolbar>
 
-            @if (isParentSetting && appliedByParent)
+            @if (isParentSetting && cacheSettings.ApplyToChildren)
             {
               if (notAppliedSettings != null && searchedParent)
               {
@@ -213,4 +188,20 @@
       Response.Headers.Add("Cache-Tag", cacheTags);
     }
   }
+
+  public dynamic FindParentCacheSetting(TabInfo tab, IEnumerable<dynamic> allSettings, int portalId)
+  {
+    var parentTab = tab;
+    while (parentTab != null)
+    {
+      parentTab = TabController.Instance.GetTab(parentTab.ParentId, portalId, false);
+      if (parentTab == null) break;
+
+      var parentSetting = allSettings?.FirstOrDefault(c => c.PageId == parentTab.TabID);
+      if (parentSetting?.ApplyToChildren == true)
+      {
+        return parentSetting;
+      }
+    }
+    return null;  
 }
