@@ -26,13 +26,11 @@ function o(t = "", c = "") {
     });
   }
 }
-let l = "", f = "", d = !1, h = "";
-function w(t, c, s, e) {
-  d = t, l = c, f = s, h = e, g();
+let i = "", l = "", f = !1, d = "";
+function b(t, c, s, e) {
+  f = t, i = c, l = s, d = e, w(window.location.hash === "#cachedebug");
 }
-const u = window.location.hash === "#cachedebug";
-u && g(u);
-async function i(t) {
+async function u(t) {
   try {
     const c = await fetch(t, { method: "GET", cache: "reload" }), s = c.headers.get("cf-cache-status") || "missing", e = c.headers.get("cache-control") || "missing", r = e.toLowerCase().includes("public");
     return { cf: s, cc: e, isPublic: r };
@@ -40,19 +38,19 @@ async function i(t) {
     return { cf: "Error loading", cc: "Error loading", isPublic: !1 };
   }
 }
-function v(t, c, s, e, r) {
-  const a = ["HTML", "JS", "CSS", "IMG"].map((p, S) => {
-    const { cf: b, cc: C, isPublic: y } = t[S] || {};
-    return `${p}: CF=${b}, CC=${C}, ${y ? "✅ public" : "❌ not public"}`;
-  }), m = (/* @__PURE__ */ new Date()).toLocaleString("de-DE", { hour12: !1 });
+function y(t, c, s, e, r) {
+  const a = ["HTML", "JS", "CSS", "IMG"].map((g, m) => {
+    const { cf: p, cc: S, isPublic: C } = t[m] || {};
+    return `${g}: CF=${p}, CC=${S}, ${C ? "✅ public" : "❌ not public"}`;
+  }), h = (/* @__PURE__ */ new Date()).toLocaleString("de-DE", { hour12: !1 });
   return `Cache Status: ${c ? "enabled" : "disabled"}
 Cache-Control: ${s}
 Cache-Tag: ${e}
-Server-Zeit: ${r} Browser-Zeit: ${m}
+Server-Zeit: ${r} Browser-Zeit: ${h}
 ` + a.join(`
 `);
 }
-async function g(t = !1) {
+async function w(t = !1) {
   const c = [
     { selector: window.location.href, prop: null, id: "cf-status-html" },
     { selector: "script[src]", prop: "src", id: "cf-status-js" },
@@ -60,11 +58,11 @@ async function g(t = !1) {
     { selector: "img[src]", prop: "src", id: "cf-status-img" }
   ], s = await Promise.all(
     c.map(async ({ selector: r, prop: n }) => {
-      if (n === null) return i(r);
+      if (n === null) return u(r);
       const a = document.querySelector(r);
-      return a ? i(a[n]) : { cf: "missing", cc: "missing", isPublic: !1 };
+      return a ? u(a[n]) : { cf: "missing", cc: "missing", isPublic: !1 };
     })
-  ), e = v(s, d, l, f, h);
+  ), e = y(s, f, i, l, d);
   if (t)
     alert(e);
   else {
@@ -72,4 +70,4 @@ async function g(t = !1) {
     r && (r.value = e);
   }
 }
-window.initCacheStatus = w;
+window.initCacheStatus = b;

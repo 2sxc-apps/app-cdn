@@ -55,12 +55,8 @@ function initCacheStatus(enabled, hdr, tag, srvTime) {
   header = hdr;
   cacheTag = tag;
   serverTime = srvTime;
-  showCacheInfo();
-}
 
-const debug = window.location.hash === '#cachedebug';
-if (debug) {
-  showCacheInfo(debug);
+  showCacheInfo(window.location.hash === '#cachedebug');
 }
 
 async function getCacheStatus(url) {
