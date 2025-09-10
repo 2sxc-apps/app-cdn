@@ -9,16 +9,18 @@
 @using DotNetNuke.Entities.Tabs
 
 @{
+  var cdnCache = GetService<CDNCache>();
+
   var currentTabId = MyPage.Id;
   var allCacheSettings = App.Data.GetAll<CacheSettings>();
 
   // Find relevant cache setting (for page or parent)
-  var status = FindRelevantCacheSetting(currentTabId, allCacheSettings);
+  var status = cdnCache.FindRelevantCacheSetting(currentTabId, allCacheSettings);
 
   // Extract values with fallback to App.Settings
-  var isEnabled = GetSettingValue(status, "IsEnabled", App.Settings.IsEnabled);
-  var cacheMaxAge = GetSettingValue(status, "MaxAge", App.Settings.MaxAge);
-  var cacheSMaxAge = GetSettingValue(status, "SMaxAge", App.Settings.SMaxAge);
+  var isEnabled = cdnCache.GetSettingValue(status, "IsEnabled", App.Settings.IsEnabled);
+  var cacheMaxAge = cdnCache.GetSettingValue(status, "MaxAge", App.Settings.MaxAge);
+  var cacheSMaxAge = cdnCache.GetSettingValue(status, "SMaxAge", App.Settings.SMaxAge);
   var cacheTag = status.Found && Text.Has(status.Settings.CacheTag)
     ? status.Settings.CacheTag
     : App.Settings.CacheTag;
@@ -28,7 +30,7 @@
   var header = "";
   if (isEnabled)
   {
-    SetPublicCacheHeaders(Response, (int)cacheMaxAge, (int)cacheSMaxAge, cacheTag);
+    cdnCache.SetPublicCacheHeaders(Response, (int)cacheMaxAge, (int)cacheSMaxAge, cacheTag);
     header = $"public, max-age={cacheMaxAge}, s-maxage={cacheSMaxAge}";
   }
 
@@ -51,7 +53,7 @@
 @* Show Admin Area to Editors *@
 @if (MyUser.IsContentAdmin)
 {
-  var toolbar = GetToolbar(status, currentTabId);
+  var toolbar = cdnCache.GetToolbar(status, currentTabId);
 
   @* Accordion with everything *@
   <div class="accordion" id="app-cdn">
@@ -69,7 +71,7 @@
         <div class="accordion-body">
           @* Green box showing which settings are being used *@
           <div class="alert alert-success" @toolbar>
-            @RenderSettingsInfo(status, currentTabId)
+            @cdnCache.RenderSettingsInfo(status, currentTabId)
           
             <div>
               @App.Resources.LabelSettings
@@ -108,128 +110,11 @@
       </div>
     </div>
   </div>
+
+  <style>
+    #app-cdn .alert-success .text-danger p {
+      margin-bottom: 0;
+    }
+  </style>
 }
 
-<style>
-  .alert-success .text-danger p {
-    margin-bottom: 0;
-  }
-</style>
-
-@functions {
-  // Helper: Set HTTP Cache Headers
-  public void SetPublicCacheHeaders(HttpResponseBase Response, int browserCacheSeconds, int cloudflareCacheSeconds, string cacheTags = "")
-  {
-    Response.Cache.SetCacheability(HttpCacheability.Public);
-    var ttlBrowser = TimeSpan.FromSeconds(browserCacheSeconds);
-    var ttlCloudflare = TimeSpan.FromSeconds(cloudflareCacheSeconds);
-    Response.Cache.SetMaxAge(ttlBrowser);
-    Response.Cache.SetProxyMaxAge(ttlCloudflare);
-
-    if (!string.IsNullOrEmpty(cacheTags))
-      Response.Headers.Add("Cache-Tag", cacheTags);
-  }
-
-  // Helper: Find relevant cache setting for current or parent page
-  private SettingsBundle FindRelevantCacheSetting(int currentTabId, IEnumerable<dynamic> allSettings)
-  {
-    var status = new SettingsBundle {
-      ForPageId = currentTabId,
-      OfPageId = currentTabId,
-      Settings = allSettings?.FirstOrDefault(c => c.PageId == currentTabId),
-      IgnoredPageSettings = null,
-      TriedParents = false
-    };
-
-    if (status.Settings == null || status.Settings.ApplyToPage == false)
-      status = FindParentCacheSetting(status, allSettings);
-
-    return status;
-  }
-
-  private SettingsBundle FindParentCacheSetting(SettingsBundle original, IEnumerable<dynamic> allSettings)
-  {
-    var portalId = PortalSettings.Current.PortalId;
-    var parentTab = PortalSettings.Current.ActiveTab;
-    while (parentTab != null)
-    {
-      // Check if we have a parent-page
-      var parentId = parentTab.ParentId;
-      parentTab = TabController.Instance.GetTab(parentId, portalId, false);
-      if (parentTab == null)
-        break;
-
-      // See if the parent page has a setting which applies to children
-      var parentSetting = allSettings?.FirstOrDefault(c => c.PageId == parentId);
-      if (parentSetting?.ApplyToChildren == true)
-        return new SettingsBundle(original) { OfPageId = parentId, Settings = parentSetting };
-    }
-    return new SettingsBundle(original) { OfPageId = 0, Settings = null };
-  }
-
-  // Helper: Get value from settings or fallback
-  private dynamic GetSettingValue(SettingsBundle status, string key, dynamic fallback)
-  {
-    if (status.Found && status.Settings.Get(key) != null)
-      return status.Settings.Get(key);
-    return fallback;
-  }
-
-  // Helper: Get toolbar for editing
-  private dynamic GetToolbar(SettingsBundle status, int currentTabId)
-  {
-    var toolbar = Kit.Toolbar.Default().New("CacheSettings", tweak: b => b.Color("gray").Prefill("PageId", currentTabId));
-
-    if (status.Found)
-    {
-      toolbar = Kit.Toolbar.Default(status.Settings).New("-");
-      if (status.IsOfParent && status.IgnoredPageSettings == null)
-        toolbar = Kit.Toolbar.Default().Edit("-").New("CacheSettings", tweak: b => b.Color("gray").Prefill("PageId", currentTabId));
-      if (status.IgnoredPageSettings != null)
-        toolbar = Kit.Toolbar.Default(status.IgnoredPageSettings).New("-");
-    }
-    return toolbar;
-  }
-
-  // Helper: Render settings info block
-  private IHtmlString RenderSettingsInfo(SettingsBundle status, int currentTabId)
-  {
-    if (!status.Found)
-      return new HtmlString("<div>" + App.Resources.MsgNoSettings.Replace("([currentpage])", currentTabId.ToString()) + "</div>");
-
-    var info = "";
-    if (status.IsOfParent && status.Settings.ApplyToChildren)
-    {
-      if (status.IgnoredPageSettings != null && status.TriedParents)
-      {
-        info += $"<div>{App.Resources.MsgNotAppliedSettings}<div>{App.Resources.LabelTitle} <strong>{Text.First(status.IgnoredPageSettings.Title, "-")}</strong></div></div>";
-      }
-      info += $"<div>{App.Resources.MsgAppliedFromParent.Replace("([parentpage])", status.OfPageId.ToString())} {status.ForPageId}</div>";
-    }
-    if (!status.IsOfParent && status.Settings.ApplyToPage)
-    {
-      info += $"<div>{App.Resources.MsgAppliedToPage} {currentTabId}</div>";
-    }
-    info += $"<div>{App.Resources.LabelTitle} <strong>{Text.First(status.Settings.Title, "-")}</strong></div>";
-    return new HtmlString(info);
-  }
-
-  // Helper: SettingsBundle class
-  private class SettingsBundle
-  {
-    public SettingsBundle() { }
-    public SettingsBundle(SettingsBundle original)
-    {
-      ForPageId = original.ForPageId;
-      IgnoredPageSettings = original.Settings;
-      TriedParents = true;
-    }
-    public int ForPageId;
-    public bool IsOfParent { get { return ForPageId != OfPageId; } }
-    public int OfPageId;
-    public bool Found { get { return Settings != null; } }
-    public dynamic Settings;
-    public dynamic IgnoredPageSettings;
-    public bool TriedParents;
-  }
-}
