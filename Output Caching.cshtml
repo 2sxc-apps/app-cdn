@@ -76,8 +76,8 @@
 @* TODO: @2ro - this looks wrong, the JS is "blocking" and there is no turn-on to ensure the code works as expected*@
 <script src="@App.Path/dist/index.js"></script>
 <script>
-    window.initCacheStatus(@isEnabled.ToString().ToLower(), "@header", "@cacheTag", "@timeStamp");
-  </script>
+  window.initCacheStatus(@isEnabled.ToString().ToLower(), "@header", "@cacheTag", "@timeStamp");
+</script>
 
 @* Show Admin Area to Editors *@
 @if (Edit.Enabled)
@@ -122,8 +122,7 @@
                 </div>
               }
 
-              <div>@App.Resources.MsgAppliedFromParent @status.Settings.PageId</div>
-              <div>@App.Resources.LabelCurrentTabId @currentTabId</div>
+              <div>@App.Resources.MsgAppliedFromParent.Replace("([parentpage])", status.OfPageId.ToString()) @status.ForPageId</div>
             }
 
             @if (!status.IsOfParent && status.Settings.ApplyToPage)
