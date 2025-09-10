@@ -14,7 +14,7 @@ public class CacheController : SxcApiController
   [HttpPost]
   [DnnModuleAuthorize(AccessLevel = SecurityAccessLevel.Anonymous)]
   [ValidateAntiForgeryToken]
-  public async Task<string> Purge([FromBody] dynamic bodyJson)
+  public async Task<IHttpActionResult> Purge([FromBody] dynamic bodyJson)
   {
     var apiToken = App.Settings.ApiToken;
     var zoneId = App.Settings.ZoneId;
@@ -63,14 +63,14 @@ public class CacheController : SxcApiController
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpResponseException(response.StatusCode);
+            return Content(response.StatusCode, JsonConvert.DeserializeObject(result));
         }
 
-        return result;
+        return Ok(JsonConvert.DeserializeObject(result));
       }
       catch (TaskCanceledException ex)
       {
-        return JsonConvert.SerializeObject(new
+        return Json(new
         {
           Message = "Task was canceled (timeout or network problem)",
           ExceptionType = ex.GetType().Name,
@@ -80,7 +80,7 @@ public class CacheController : SxcApiController
       catch (Exception ex)
       {
         // Other errors
-        return JsonConvert.SerializeObject(new
+        return Json(new
         {
           Message = "Error making request",
           ExceptionType = ex.GetType().Name,

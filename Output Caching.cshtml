@@ -31,6 +31,14 @@
     SetPublicCacheHeaders(Response, (int)cacheMaxAge, (int)cacheSMaxAge, cacheTag);
     header = $"public, max-age={cacheMaxAge}, s-maxage={cacheSMaxAge}";
   }
+
+  var data = new {
+    domId = MyContext.Module.Id,
+    isEnabled = isEnabled.ToString().ToLower(),
+    header = header,
+    cacheTag = cacheTag,
+    serverTime = timeStamp
+  };
 }
 
 @* Add a hidden timestamp to better debug any issues *@
@@ -38,9 +46,7 @@
 
 @* Add scripts etc. to optionally show caching information in anonymous mode, if the correct link is used *@
 <script src="@App.Folder.Url/dist/index.js"></script>
-<script>
-  window.initCacheStatus(@isEnabled.ToString().ToLower(), "@header", "@cacheTag", "@timeStamp");
-</script>
+@Kit.Page.TurnOn("window.appCdn.initCacheStatus()", data: data)
 
 @* Show Admin Area to Editors *@
 @if (MyUser.IsContentAdmin)
@@ -50,24 +56,28 @@
   @* Accordion with everything *@
   <div class="accordion" id="app-cdn">
     <div class="accordion-item">
+      
       @* Accordion Header with status information *@
       <h2 class="accordion-header">
         <button class="accordion-button @(App.Settings.OpenSettings ? "" : "collapsed")" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
           Output Caching @(isEnabled ? App.Resources.LabelEnabled + " ✔️" : App.Resources.LabelDisabled + " ❌")
         </button>
       </h2>
+      
       @* Accordion Body with settings and stats; should be collapsed in production (see App setting for that) *@
       <div id="app-cache-settings" class="accordion-collapse collapse @(App.Settings.OpenSettings ? "show" : "")" data-bs-parent="#app-cdn">
         <div class="accordion-body">
           @* Green box showing which settings are being used *@
           <div class="alert alert-success" @toolbar>
             @RenderSettingsInfo(status, currentTabId)
+          
             <div>
               @App.Resources.LabelSettings
               <strong>MaxAge:</strong> <code>@cacheMaxAge</code>;
               <strong>SMaxAge:</strong> <code>@cacheSMaxAge</code>;
               <strong>Cache-Tag:</strong> <code>@Text.First(cacheTag, "-")</code>
             </div>
+          
             @* Info to see the final stats in anonymous mode is for everybody *@
             <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous)</div>
           </div>
@@ -77,13 +87,16 @@
             <button class="btn btn-primary" type="button" id="custom-purge">@App.Resources.FlushUrl</button>
             <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
           </div>
+
           <div class="input-group mb-3">
             <button class="btn btn-outline-primary" type="button" id="tag-purge">@App.Resources.FlushTags</button>
             <input type="text" class="form-control" value="" id="tag-purge-url">
           </div>
+
           <div class="input-group mb-3">
             <button class="btn btn-outline-primary" type="button" id="full-purge">@App.Resources.FlushAll</button>
           </div>
+
           @* Only show statistics to super users, and others would be confused *@
           @if (PortalSettings.Current.UserInfo.IsSuperUser)
           {
@@ -165,12 +178,15 @@
   // Helper: Get toolbar for editing
   private dynamic GetToolbar(SettingsBundle status, int currentTabId)
   {
-    var toolbar = Kit.Toolbar.Default().New(tweak: b => b.Color("pink,black"));
-    //var toolbar = Edit.TagToolbar(toolbar: new[] { "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId });
+    var toolbar = Kit.Toolbar.Default().New("CacheSettings", tweak: b => b.Color("gray").Prefill("PageId", currentTabId));
 
     if (status.Found)
     {
-
+      toolbar = Kit.Toolbar.Default(status.Settings).New("-");
+      if (status.IsOfParent && status.IgnoredPageSettings == null)
+        toolbar = Kit.Toolbar.Default().Edit("-").New("CacheSettings", tweak: b => b.Color("gray").Prefill("PageId", currentTabId));
+      if (status.IgnoredPageSettings != null)
+        toolbar = Kit.Toolbar.Default(status.IgnoredPageSettings).New("-");
     }
     return toolbar;
   }
