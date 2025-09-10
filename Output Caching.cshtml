@@ -1,48 +1,24 @@
-@* @inherits AppCode.Razor.AppRazor
+@inherits AppCode.Razor.AppRazor
 @using AppCode.Data
-@using AppCode.Helpers *@
+@using AppCode.Helpers
 
-@inherits ToSic.Sxc.Dnn.RazorComponent
 @using ToSic.Razor.Blade
-
 @using System.Web
 @using System
 @using DotNetNuke.Entities.Portals
-@using DotNetNuke.Entities.Tabs;
+@using DotNetNuke.Entities.Tabs
 
 @{
-  var currentTabId = Dnn.Tab.TabID;
+  var currentTabId = MyPage.Id;
+  var allCacheSettings = App.Data.GetAll<CacheSettings>();
 
-  var allCacheSettings = AsList(App.Data["CacheSettings"]);
+  // Find relevant cache setting (for page or parent)
+  var status = FindRelevantCacheSetting(currentTabId, allCacheSettings);
 
-  // First, try to find a setting which references the current page
-  var status = new SettingsBundle {
-    ForPageId = currentTabId,
-    OfPageId = currentTabId,
-    Settings = allCacheSettings?.FirstOrDefault(c => c.PageId == currentTabId),
-    IgnoredPageSettings = null,
-    TriedParents = false
-  };
-
-  // We don't have a rule for this page, or it doesn't apply
-  // check if a parent page has a rule which applies to children
-  if (status.Settings == null || status.Settings.ApplyToPage == false)
-  {
-    status = FindParentCacheSetting(status, allCacheSettings);
-  }
-
-  var isEnabled = status.Found && status.Settings.Get("IsEnabled") != null
-    ? status.Settings.IsEnabled
-    : App.Settings.IsEnabled;
-
-  var cacheMaxAge = status.Found && status.Settings.Get("MaxAge") != null
-    ? status.Settings.MaxAge
-    : App.Settings.MaxAge;
-
-  var cacheSMaxAge = status.Found && status.Settings.Get("SMaxAge") != null
-    ? status.Settings.SMaxAge
-    : App.Settings.SMaxAge;
-
+  // Extract values with fallback to App.Settings
+  var isEnabled = GetSettingValue(status, "IsEnabled", App.Settings.IsEnabled);
+  var cacheMaxAge = GetSettingValue(status, "MaxAge", App.Settings.MaxAge);
+  var cacheSMaxAge = GetSettingValue(status, "SMaxAge", App.Settings.SMaxAge);
   var cacheTag = status.Found && Text.Has(status.Settings.CacheTag)
     ? status.Settings.CacheTag
     : App.Settings.CacheTag;
@@ -61,31 +37,15 @@
 <!-- Server Timestamp: @timeStamp -->
 
 @* Add scripts etc. to optionally show caching information in anonymous mode, if the correct link is used *@
-<script src="@App.Path/dist/index.js"></script>
+<script src="@App.Folder.Url/dist/index.js"></script>
 <script>
   window.initCacheStatus(@isEnabled.ToString().ToLower(), "@header", "@cacheTag", "@timeStamp");
 </script>
 
 @* Show Admin Area to Editors *@
-@if (Edit.Enabled)
+@if (MyUser.IsContentAdmin)
 {
-  // Default toolbar if no settings found
-  var toolbar = Edit.TagToolbar(toolbar: new[] { "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId });
-
-  if (status.Found) {
-    // Determine best toolbar
-    toolbar = Edit.TagToolbar(status.Settings);
-
-    if (status.IsOfParent && status.IgnoredPageSettings == null)
-    {
-      toolbar = Edit.TagToolbar(status.Settings, toolbar: new[] { "-edit", "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId });
-    }
-
-    if (status.IgnoredPageSettings != null)
-    {
-      toolbar = Edit.TagToolbar(status.IgnoredPageSettings);
-    }
-  }
+  var toolbar = GetToolbar(status, currentTabId);
 
   @* Accordion with everything *@
   <div class="accordion" id="app-cdn">
@@ -96,52 +56,20 @@
           Output Caching @(isEnabled ? App.Resources.LabelEnabled + " ✔️" : App.Resources.LabelDisabled + " ❌")
         </button>
       </h2>
-
       @* Accordion Body with settings and stats; should be collapsed in production (see App setting for that) *@
       <div id="app-cache-settings" class="accordion-collapse collapse @(App.Settings.OpenSettings ? "show" : "")" data-bs-parent="#app-cdn">
         <div class="accordion-body">
-
           @* Green box showing which settings are being used *@
           <div class="alert alert-success" @toolbar>
-
-            @* If no rules found - show an info + button to optionally add a rule *@
-            @if (!status.Found)
-            {
-              <div>@Html.Raw(App.Resources.MsgNoSettings.Replace("([currentpage])", currentTabId.ToString()))</div>
-            }
-            else
-            {
-              if (status.IsOfParent && status.Settings.ApplyToChildren)
-              {
-                if (status.IgnoredPageSettings != null && status.TriedParents)
-                {
-                  <div>
-                    @Html.Raw(App.Resources.MsgNotAppliedSettings)
-                    <div>@App.Resources.LabelTitle <strong>@Text.First(status.IgnoredPageSettings.Title, "-")</strong></div>
-                  </div>
-                }
-
-                <div>@App.Resources.MsgAppliedFromParent.Replace("([parentpage])", status.OfPageId.ToString()) @status.ForPageId</div>
-              }
-
-              if (!status.IsOfParent && status.Settings.ApplyToPage)
-              {
-                <div>@App.Resources.MsgAppliedToPage @currentTabId</div>
-              }
-              
-              <div>@App.Resources.LabelTitle <strong>@Text.First(status.Settings.Title, "-")</strong></div>
-            }
-
+            @RenderSettingsInfo(status, currentTabId)
             <div>
               @App.Resources.LabelSettings
               <strong>MaxAge:</strong> <code>@cacheMaxAge</code>;
               <strong>SMaxAge:</strong> <code>@cacheSMaxAge</code>;
               <strong>Cache-Tag:</strong> <code>@Text.First(cacheTag, "-")</code>
             </div>
-
             @* Info to see the final stats in anonymous mode is for everybody *@
             <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous)</div>
-
           </div>
 
           <h3>@App.Resources.FlushTitle</h3>
@@ -149,16 +77,13 @@
             <button class="btn btn-primary" type="button" id="custom-purge">@App.Resources.FlushUrl</button>
             <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
           </div>
-
           <div class="input-group mb-3">
             <button class="btn btn-outline-primary" type="button" id="tag-purge">@App.Resources.FlushTags</button>
             <input type="text" class="form-control" value="" id="tag-purge-url">
           </div>
-
           <div class="input-group mb-3">
             <button class="btn btn-outline-primary" type="button" id="full-purge">@App.Resources.FlushAll</button>
           </div>
-
           @* Only show statistics to super users, and others would be confused *@
           @if (PortalSettings.Current.UserInfo.IsSuperUser)
           {
@@ -170,15 +95,16 @@
       </div>
     </div>
   </div>
-
-  <style>
-    .alert-success .text-danger p {
-      margin-bottom: 0;
-    }
-  </style>
 }
 
+<style>
+  .alert-success .text-danger p {
+    margin-bottom: 0;
+  }
+</style>
+
 @functions {
+  // Helper: Set HTTP Cache Headers
   public void SetPublicCacheHeaders(HttpResponseBase Response, int browserCacheSeconds, int cloudflareCacheSeconds, string cacheTags = "")
   {
     Response.Cache.SetCacheability(HttpCacheability.Public);
@@ -187,10 +113,25 @@
     Response.Cache.SetMaxAge(ttlBrowser);
     Response.Cache.SetProxyMaxAge(ttlCloudflare);
 
-    if (cacheTags != "")
-    {
+    if (!string.IsNullOrEmpty(cacheTags))
       Response.Headers.Add("Cache-Tag", cacheTags);
-    }
+  }
+
+  // Helper: Find relevant cache setting for current or parent page
+  private SettingsBundle FindRelevantCacheSetting(int currentTabId, IEnumerable<dynamic> allSettings)
+  {
+    var status = new SettingsBundle {
+      ForPageId = currentTabId,
+      OfPageId = currentTabId,
+      Settings = allSettings?.FirstOrDefault(c => c.PageId == currentTabId),
+      IgnoredPageSettings = null,
+      TriedParents = false
+    };
+
+    if (status.Settings == null || status.Settings.ApplyToPage == false)
+      status = FindParentCacheSetting(status, allSettings);
+
+    return status;
   }
 
   private SettingsBundle FindParentCacheSetting(SettingsBundle original, IEnumerable<dynamic> allSettings)
@@ -213,17 +154,60 @@
     return new SettingsBundle(original) { OfPageId = 0, Settings = null };
   }
 
+  // Helper: Get value from settings or fallback
+  private dynamic GetSettingValue(SettingsBundle status, string key, dynamic fallback)
+  {
+    if (status.Found && status.Settings.Get(key) != null)
+      return status.Settings.Get(key);
+    return fallback;
+  }
+
+  // Helper: Get toolbar for editing
+  private dynamic GetToolbar(SettingsBundle status, int currentTabId)
+  {
+    var toolbar = Kit.Toolbar.Default().New(tweak: b => b.Color("pink,black"));
+    //var toolbar = Edit.TagToolbar(toolbar: new[] { "new&color=red?contentType=CacheSettings&prefill:PageId=" + currentTabId });
+
+    if (status.Found)
+    {
+
+    }
+    return toolbar;
+  }
+
+  // Helper: Render settings info block
+  private IHtmlString RenderSettingsInfo(SettingsBundle status, int currentTabId)
+  {
+    if (!status.Found)
+      return new HtmlString("<div>" + App.Resources.MsgNoSettings.Replace("([currentpage])", currentTabId.ToString()) + "</div>");
+
+    var info = "";
+    if (status.IsOfParent && status.Settings.ApplyToChildren)
+    {
+      if (status.IgnoredPageSettings != null && status.TriedParents)
+      {
+        info += $"<div>{App.Resources.MsgNotAppliedSettings}<div>{App.Resources.LabelTitle} <strong>{Text.First(status.IgnoredPageSettings.Title, "-")}</strong></div></div>";
+      }
+      info += $"<div>{App.Resources.MsgAppliedFromParent.Replace("([parentpage])", status.OfPageId.ToString())} {status.ForPageId}</div>";
+    }
+    if (!status.IsOfParent && status.Settings.ApplyToPage)
+    {
+      info += $"<div>{App.Resources.MsgAppliedToPage} {currentTabId}</div>";
+    }
+    info += $"<div>{App.Resources.LabelTitle} <strong>{Text.First(status.Settings.Title, "-")}</strong></div>";
+    return new HtmlString(info);
+  }
+
+  // Helper: SettingsBundle class
   private class SettingsBundle
   {
     public SettingsBundle() { }
-
     public SettingsBundle(SettingsBundle original)
     {
       ForPageId = original.ForPageId;
       IgnoredPageSettings = original.Settings;
       TriedParents = true;
     }
-
     public int ForPageId;
     public bool IsOfParent { get { return ForPageId != OfPageId; } }
     public int OfPageId;
