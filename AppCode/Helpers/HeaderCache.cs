@@ -75,17 +75,44 @@ namespace AppCode.Helpers
 		// Get toolbar for editing
 		public dynamic GetToolbar(SettingsBundle status, int currentTabId)
 		{
-			var toolbar = Kit.Toolbar.Default().New("CacheSettings", tweak: b => b.Color("gray").Prefill("PageId", currentTabId));
+			var appSettings = As<AppSettings>(App.Settings);
+			var appResources = As<AppResources>(App.Resources);
 
+			// Only allow editing if user is SystemAdmin, when RestrictEditToSuperUser is enabled
+			if (appSettings.RestrictEditToSuperUser && !MyUser.IsSystemAdmin)
+			{
+				// Show info toolbar if user lacks sufficient permissions
+				return Kit.Toolbar.Empty().Info(tweak: b => b.Note(appResources.InfoHostPermissions));
+			}
+
+			// Explicitly restricted users cannot edit
+			if (appSettings.RestrictEditToUsers.Contains(MyUser.Username))
+			{
+				// Show info toolbar for users not allowed to edit
+				return Kit.Toolbar.Empty().Info(tweak: b => b.Note(appResources.InfoUserNotAllowed));
+			}
+
+			// Build toolbar depending on the current status
 			if (status.Found)
 			{
-				toolbar = Kit.Toolbar.Default(status.Settings).New("-");
+				// If settings are inherited from parent and there are no ignored page settings
 				if (status.IsOfParent && status.IgnoredPageSettings == null)
-					toolbar = Kit.Toolbar.Default().Edit("-").New("CacheSettings", tweak: b => b.Color("gray").Prefill("PageId", currentTabId));
+				{
+					return Kit.Toolbar.Default().Edit("-").New("CacheSettings", tweak: b => b.Color("gray").Prefill("PageId", currentTabId));
+				}
+
+				// If there are ignored page settings, use them
 				if (status.IgnoredPageSettings != null)
-					toolbar = Kit.Toolbar.Default(status.IgnoredPageSettings).New("-");
+				{
+					return Kit.Toolbar.Default(status.IgnoredPageSettings).New("-");
+				}
+
+				// Otherwise, use the found settings
+				return Kit.Toolbar.Default(status.Settings).New("-");
 			}
-			return toolbar;
+
+			// Default: create a toolbar for new CacheSettings
+			return Kit.Toolbar.Default().New("CacheSettings", tweak: b => b.Color("gray").Prefill("PageId", currentTabId));
 		}
 
 		// Render settings info block
