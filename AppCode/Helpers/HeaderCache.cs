@@ -86,7 +86,7 @@ namespace AppCode.Helpers
 			}
 
 			// Explicitly restricted users cannot edit
-			if (appSettings.RestrictEditToUsers.Contains(MyUser.Username))
+			if (Text.Has(appSettings.RestrictEditToUsers) && !appSettings.RestrictEditToUsers.Contains(MyUser.Username))
 			{
 				// Show info toolbar for users not allowed to edit
 				return Kit.Toolbar.Empty().Info(tweak: b => b.Note(appResources.InfoUserNotAllowed));
