@@ -47,4 +47,13 @@ You can find this in:
 
 ## History
 
-1. Created first PoC of the strip-cookies 2025-08-25
+### 2025-08-25
+
+1. Created first PoC of the strip-cookies
+
+### 2025-09-14
+
+1. 2dm: update app-icon to use cloudflare icon
+1. 2dm: update view icon to use cloudflare icon
+1. 2dm: add formula to enforce CacheTag to be lower case
+1. 2dm: add field for rename/map url from internal/testing to public url

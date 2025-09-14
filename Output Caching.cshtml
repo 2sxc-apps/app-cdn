@@ -87,7 +87,7 @@
           <h3>@App.Resources.FlushTitle</h3>
           <div class="input-group mb-3">
             <button class="btn btn-primary" type="button" id="custom-purge">@App.Resources.FlushUrl</button>
-            <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@Link.To()" id="custom-purge-url">
+            <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@RemapUrl(Link.To(), App.Settings.UrlRewriteMap)" id="custom-purge-url">
           </div>
 
           <div class="input-group mb-3">
@@ -118,3 +118,25 @@
   </style>
 }
 
+@functions {
+  /// <summary>
+  /// Remap internal url to public url, if a map is defined
+  /// </summary>
+  /// <param name="url">The original url</param>
+  /// <param name="map">The map, with lines like "internal>public"</param>
+  private string RemapUrl(string url, string map) {
+    // If no map, return original url
+    if (string.IsNullOrWhiteSpace(map))
+      return url;
+
+    // Split on new lines to allow multiple mappings
+    var list = map.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries );
+    foreach (var part in list) {
+      var parts = part.Split('>');
+      if (parts.Length != 2)
+        continue;
+      url = url.Replace(parts[0].Trim(), parts[1].Trim());
+    }
+    return url;
+  }
+}
