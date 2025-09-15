@@ -30,8 +30,11 @@
   var header = "";
   if (isEnabled)
   {
-    cdnCache.SetPublicCacheHeaders(Response, (int)cacheMaxAge, (int)cacheSMaxAge, cacheTag);
-    header = $"public, max-age={cacheMaxAge}, s-maxage={cacheSMaxAge}";
+    cdnCache.SetPublicCacheHeaders(Response, (int)cacheMaxAge, (int)cacheSMaxAge, cacheTag, status?.Settings?.NoCache ?? false);
+    if (status?.Settings?.NoCache ?? false)
+      header = "no-cache, no-store, must-revalidate";
+    else
+      header = $"public, max-age={cacheMaxAge}, s-maxage={cacheSMaxAge}";
   }
 
   var data = new {
@@ -72,13 +75,19 @@
           @* Green box showing which settings are being used *@
           <div class="alert alert-success" @toolbar>
             @cdnCache.RenderSettingsInfo(status, currentTabId)
-          
-            <div>
-              @App.Resources.LabelSettings
-              <strong>MaxAge:</strong> <code>@cacheMaxAge</code>;
-              <strong>SMaxAge:</strong> <code>@cacheSMaxAge</code>;
-              <strong>Cache-Tag:</strong> <code>@Text.First(cacheTag, "-")</code>
-            </div>
+
+            @if (isEnabled) {
+              if(status.Found && status.Settings.NoCache) {
+                <div>Cache-Control: NO-CACHE</div>
+              } else {
+                <div>
+                  @App.Resources.LabelSettings
+                  <strong>MaxAge:</strong> <code>@cacheMaxAge</code>;
+                  <strong>SMaxAge:</strong> <code>@cacheSMaxAge</code>;
+                  <strong>Cache-Tag:</strong> <code>@Text.First(cacheTag, "-")</code>
+                </div>
+              }
+            }
           
             @* Info to see the final stats in anonymous mode is for everybody *@
             <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous)</div>
@@ -87,7 +96,7 @@
           <h3>@App.Resources.FlushTitle</h3>
           <div class="input-group mb-3">
             <button class="btn btn-primary" type="button" id="custom-purge">@App.Resources.FlushUrl</button>
-            <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@RemapUrl(Link.To(), App.Settings.UrlRewriteMap)" id="custom-purge-url">
+            <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@cdnCache.RemapUrl(Link.To(), App.Settings.UrlRewriteMap)" id="custom-purge-url">
           </div>
 
           <div class="input-group mb-3">
@@ -116,27 +125,4 @@
       margin-bottom: 0;
     }
   </style>
-}
-
-@functions {
-  /// <summary>
-  /// Remap internal url to public url, if a map is defined
-  /// </summary>
-  /// <param name="url">The original url</param>
-  /// <param name="map">The map, with lines like "internal>public"</param>
-  private string RemapUrl(string url, string map) {
-    // If no map, return original url
-    if (string.IsNullOrWhiteSpace(map))
-      return url;
-
-    // Split on new lines to allow multiple mappings
-    var list = map.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries );
-    foreach (var part in list) {
-      var parts = part.Split('>');
-      if (parts.Length != 2)
-        continue;
-      url = url.Replace(parts[0].Trim(), parts[1].Trim());
-    }
-    return url;
-  }
 }

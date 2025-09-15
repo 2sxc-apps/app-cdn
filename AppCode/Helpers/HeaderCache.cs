@@ -14,8 +14,17 @@ namespace AppCode.Helpers
 	public class CDNCache : Custom.Hybrid.CodeTyped
 	{
 		// Set HTTP Cache Headers
-		public void SetPublicCacheHeaders(HttpResponseBase Response, int browserCacheSeconds, int cloudflareCacheSeconds, string cacheTags = "")
+		public void SetPublicCacheHeaders(HttpResponseBase Response, int browserCacheSeconds, int cloudflareCacheSeconds, string cacheTags = "", bool noCache = false)
 		{
+			if (noCache)
+			{
+				Response.Cache.SetCacheability(HttpCacheability.NoCache);
+				Response.Cache.SetNoStore();
+				Response.Cache.SetExpires(DateTime.UtcNow.AddYears(-1));
+				Response.Cache.SetRevalidation(HttpCacheRevalidation.AllCaches);
+				return;
+			}
+
 			Response.Cache.SetCacheability(HttpCacheability.Public);
 			var ttlBrowser = TimeSpan.FromSeconds(browserCacheSeconds);
 			var ttlCloudflare = TimeSpan.FromSeconds(cloudflareCacheSeconds);
@@ -139,6 +148,27 @@ namespace AppCode.Helpers
 			info += $"<div>{appResources.LabelTitle} <strong>{Text.First(status.Settings.Title, "-")}</strong></div>";
 			return new HtmlString(info);
 		}
+
+		/// <summary>
+		/// Remap internal url to public url, if a map is defined
+		/// </summary>
+		/// <param name="url">The original url</param>
+		/// <param name="map">The map, with lines like "internal>public"</param>
+		public string RemapUrl(string url, string map) {
+			// If no map, return original url
+			if (string.IsNullOrWhiteSpace(map))
+				return url;
+
+			// Split on new lines to allow multiple mappings
+			var list = map.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries );
+			foreach (var part in list) {
+				var parts = part.Split('>');
+				if (parts.Length != 2)
+					continue;
+				url = url.Replace(parts[0].Trim(), parts[1].Trim());
+			}
+			return url;
+		}		
 
 		// SettingsBundle class
 		public class SettingsBundle
