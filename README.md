@@ -62,3 +62,4 @@ You can find this in:
 
 1. 2ro: added no cache feature
 1. 2dm: made test-link respect the rewrite map
+1. 2dm: shorten code to access App.Resources

@@ -1,7 +1,6 @@
 @inherits AppCode.Razor.AppRazor
 @using AppCode.Data
 @using AppCode.Helpers
-
 @using ToSic.Razor.Blade
 @using System.Web
 @using System
@@ -47,6 +46,8 @@
 
   // The real url may be converted through a rewrite map, so show the real one
   var realUrl = cdnCache.RemapUrl(Link.To(), App.Settings.UrlRewriteMap);
+
+  var appRes = App.Resources; // Shorter access to resources
 }
 
 @* Add a hidden timestamp to better debug any issues *@
@@ -68,7 +69,7 @@
       @* Accordion Header with status information *@
       <h2 class="accordion-header">
         <button class="accordion-button @(App.Settings.OpenSettings ? "" : "collapsed")" type="button" data-bs-toggle="collapse" data-bs-target="#app-cache-settings">
-          Output Caching @(isEnabled ? App.Resources.LabelEnabled + " ✔️" : App.Resources.LabelDisabled + " ❌")
+          Output Caching @(isEnabled ? appRes.LabelEnabled + " ✔️" : appRes.LabelDisabled + " ❌")
         </button>
       </h2>
       
@@ -84,7 +85,7 @@
                 <div>Cache-Control: NO-CACHE</div>
               } else {
                 <div>
-                  @App.Resources.LabelSettings
+                  @appRes.LabelSettings
                   <strong>MaxAge:</strong> <code>@cacheMaxAge</code>;
                   <strong>SMaxAge:</strong> <code>@cacheSMaxAge</code>;
                   <strong>Cache-Tag:</strong> <code>@Text.First(cacheTag, "-")</code>
@@ -93,29 +94,29 @@
             }
           
             @* Info to see the final stats in anonymous mode is for everybody *@
-            <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous.Replace("href=\"", "href=\"" + realUrl))</div>
+            <div class="text-danger">@Html.Raw(appRes.MsgOpenInAnonymous.Replace("href=\"", "href=\"" + realUrl))</div>
           </div>
 
-          <h3>@App.Resources.FlushTitle</h3>
+          <h3>@appRes.FlushTitle</h3>
           <div class="input-group mb-3">
-            <button class="btn btn-primary" type="button" id="custom-purge">@App.Resources.FlushUrl</button>
+            <button class="btn btn-primary" type="button" id="custom-purge">@appRes.FlushUrl</button>
             <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@realUrl" id="custom-purge-url">
           </div>
 
           <div class="input-group mb-3">
-            <button class="btn btn-outline-primary" type="button" id="tag-purge">@App.Resources.FlushTags</button>
+            <button class="btn btn-outline-primary" type="button" id="tag-purge">@appRes.FlushTags</button>
             <input type="text" class="form-control" value="" id="tag-purge-url">
           </div>
 
           <div class="input-group mb-3">
-            <button class="btn btn-outline-primary" type="button" id="full-purge">@App.Resources.FlushAll</button>
+            <button class="btn btn-outline-primary" type="button" id="full-purge">@appRes.FlushAll</button>
           </div>
 
           @* Only show statistics to super users, and others would be confused *@
           @if (PortalSettings.Current.UserInfo.IsSuperUser)
           {
-            <h3>@App.Resources.StatisticsTitle</h3>
-            @Html.Raw(App.Resources.StatisticsIntro)
+            <h3>@appRes.StatisticsTitle</h3>
+            @Html.Raw(appRes.StatisticsIntro)
             <textarea class="form-control" id="app-stats" rows="8" readonly></textarea>
           }
         </div>
