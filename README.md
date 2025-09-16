@@ -57,3 +57,8 @@ You can find this in:
 1. 2dm: update view icon to use cloudflare icon
 1. 2dm: add formula to enforce CacheTag to be lower case
 1. 2dm: add field for rename/map url from internal/testing to public url
+
+### 2025-09-15
+
+1. 2ro: added no cache feature
+1. 2dm: made test-link respect the rewrite map

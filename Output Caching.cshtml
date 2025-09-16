@@ -44,6 +44,9 @@
     cacheTag = cacheTag,
     serverTime = timeStamp
   };
+
+  // The real url may be converted through a rewrite map, so show the real one
+  var realUrl = cdnCache.RemapUrl(Link.To(), App.Settings.UrlRewriteMap);
 }
 
 @* Add a hidden timestamp to better debug any issues *@
@@ -90,13 +93,13 @@
             }
           
             @* Info to see the final stats in anonymous mode is for everybody *@
-            <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous)</div>
+            <div class="text-danger">@Html.Raw(App.Resources.MsgOpenInAnonymous.Replace("href=\"", "href=\"" + realUrl))</div>
           </div>
 
           <h3>@App.Resources.FlushTitle</h3>
           <div class="input-group mb-3">
             <button class="btn btn-primary" type="button" id="custom-purge">@App.Resources.FlushUrl</button>
-            <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@cdnCache.RemapUrl(Link.To(), App.Settings.UrlRewriteMap)" id="custom-purge-url">
+            <input type="text" class="form-control" placeholder="Enter url which should be purged" value="@realUrl" id="custom-purge-url">
           </div>
 
           <div class="input-group mb-3">
